@@ -1,0 +1,42 @@
+The search for "import from "https://www.gstatic.com" "file:///" CORS origin null" returned the following summary:
+When you try to load external resources or modules from a web domain (like `https://www.gstatic.com`) while your HTML file is opened directly from your local file system (`file:///`), modern web browsers trigger a **CORS error** and assign your file an **opaque origin of `null`**[1][2]. 
+
+Browsers enforce strict Same-Origin Policy rules on the `file://` protocol to prevent malicious local files from arbitrarily reading or interacting with network resources[3][2].
+
+### How to Fix It
+
+To resolve this issue, you need to serve your project through a local HTTP/HTTPS development server rather than opening it directly as a file[4][2]. Because all files will then be served under a uniform scheme (e.g., `http://localhost`), the browser will recognize a valid origin and allow cross-origin requests/imports[2].
+
+Choose one of these quick methods to spin up a local server:
+
+#### 1. If you use Visual Studio Code (Recommended)
+* Install the **Live Server** extension by Ritwick Dey[4].
+* Right-click your `index.html` file in VS Code and select **"Open with Live Server"**[4].
+
+#### 2. If you have Node.js installed
+Run this command in your project folder to start a temporary static server[4]:
+```bash
+npx serve
+```
+*(Or use `npx live-server`)*[4]
+
+#### 3. If you have Python installed
+Run one of the following commands in your project directory[5]:
+* **Python 3:**
+  ```bash
+  python3 -m http.server
+  ```
+* **Python 2:**
+  ```bash
+  python -m SimpleHTTPServer
+  ```
+Then, open your browser and go to `http://localhost:8000`[5].
+
+Sources:
+[1] [github.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHUEfvDp22m7E_F7smywoM2O1S1Nu_W6B1TVJ3biW73hh1arCYdihpra9xaj-hTiI2hRWVvxa4iCpcIEKtLsDm0VE9XqjNJ4ql28oB_guaDflGa2PfkBxIjpaWWjRga97Jtnpc3KAzyNV72nLq-3AQQ154jSdRUyHwt)
+[2] [mozilla.org](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFbQ56sV0xrgc3d7t2H-HAxWj0p7q7EuH8z8fCvoMJh9YvI6_6BykSciVImoczHPBwQQHhpTm_sx6bMpPvikf0PlkXKcpEtDEQyzMHGqq5qMXwbSCKux97fq8erT0V0qbS4r8VGgvd6kl0dnS1xrstxzM77Ko8DWVmBjg836xxRz9YkIeP7AR_Q19mBq9I=)
+[3] [stackoverflow.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEXq_bC0mljbBZ3TmQ0BmNYQs24fidRFHEWN_7vlHuS2COKDOcqs2T0NRgHSE7p5VF4RQk6jhcDgNDN7GLMcYZfHhmfA55GcZfUY4DiV7VU4WXMUg6-Ik2gH4LmW1SK3hsl9YUoLzBgqXkAqjsCuOJhTsGzoYLGREbzQ2_Gnnpbo_ISAARTbwB3eTIAS1FObe-OMGZWUW_vmlQHKhFKBuEjVeenb_XWIsu0sBo=)
+[4] [stackoverflow.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEOcipHV_NxUzqiMtsLTxwPcG_k2nNJ1L1Bve9VVQfGJR3enIgV_ocGUr87nwOc__QvW3fez4F2z9-LQZxeukc9P8mrD9gHe_5854KTWheEcoa6KpzODFKgBzWoepsztTcVRMmw5kRZQGKyFz5Y9ku4iZFg36bxeZs7rQkl-Bu9SZ3MP9qwBtVkWXvIN7w1f1sveXAea6RhCpWIVmMKkyIVDTsuqVDm6g==)
+[5] [johnskinnerportfolio.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEuVDkZwEpkk3q-CoIoIpX88w73xnZ87PZ-q1b_Hyyz83-fErqiG9vQsoX229RyNajXcWGd7IJSSMnEe3jcsibkFWmFuSEWWc_suzQvMQrF91yMaH_ynedMavqCPLSKlcOXpne7D2Il2OXyGJgKdHD9Jg==)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

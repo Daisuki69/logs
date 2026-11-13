@@ -1,0 +1,27 @@
+Command exited with code 0.
+
+Command output:
+[2600:8224:1109/050253.900:ERROR:chrome\browser\task_manager\providers\fallback_task_provider.cc:126] Every renderer should have at least one task provided by a primary task provider. If a "Renderer" fallback task is shown, it is a bug. If you have repro steps, please file a new bug and tag it as a dependency of crbug.com/739782.
+[2600:8224:1109/050253.914:ERROR:chrome\browser\task_manager\providers\fallback_task_provider.cc:126] Every renderer should have at least one task provided by a primary task provider. If a "Renderer" fallback task is shown, it is a bug. If you have repro steps, please file a new bug and tag it as a dependency of crbug.com/739782.
+[2600:8224:1109/050253.916:ERROR:chrome\browser\task_manager\providers\fallback_task_provider.cc:126] Every renderer should have at least one task provided by a primary task provider. If a "Renderer" fallback task is shown, it is a bug. If you have repro steps, please file a new bug and tag it as a dependency of crbug.com/739782.
+<!DOCTYPE html>
+<html><head><title>Test Fetch</title></head>
+<body>
+<div id="status">Testing...</div>
+<script>
+  const apiKey = "AIzaSyBkqJ9WvtXfGJt19XK7SLK9v5cJwp4EVII";
+  const projectId = "sir-jasper-quiz";
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/quizzes/active?key=${apiKey}`;
+
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById("status").textContent = "FETCH SUCCESS: " + data.fields.title.stringValue;
+    })
+    .catch(err => {
+      document.getElementById("status").textContent = "FETCH ERROR: " + err.message;
+    });
+</script>
+
+
+</body></html>

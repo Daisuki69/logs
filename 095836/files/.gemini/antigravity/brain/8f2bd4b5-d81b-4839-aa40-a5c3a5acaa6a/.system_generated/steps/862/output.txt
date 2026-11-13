@@ -1,0 +1,79 @@
+Created At: 2026-11-11T04:45:53+08:00
+Completed At: 2026-11-11T04:45:57+08:00
+Command exited with code 0.
+
+Command output:
+{
+  "title": {
+    "stringValue": "C Programming: Switch Case Quizasdasdsss"
+  },
+  "description": {
+    "stringValue": "20 items • 20 seconds per question • Do not switch tabs or windows."
+  },
+  "updatedAt": {
+    "integerValue": "1794180165014"
+  },
+  "questions": {
+    "arrayValue": {
+      "values": [
+        {
+          "mapValue": {
+            "fields": {
+              "q": {
+                "stringValue": "s"
+              },
+              "correct": {
+                "stringValue": "s"
+              },
+              "wrongs": {
+                "arrayValue": {
+                  "values": [
+                    {
+                      "stringValue": "ws"
+                    },
+                    {
+                      "stringValue": "df"
+                    },
+                    {
+                      "stringValue": "sdd"
+                    }
+                  ]
+                }
+              },
+              "explanation": {
+                "stringValue": ""
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "settings": {
+    "mapValue": {
+      "fields": {
+        "autoRecordQuiz": {
+          "booleanValue": false
+        },
+        "enableTabViolation": {
+          "booleanValue": true
+        },
+        "timePerQuestion": {
+          "integerValue": "20"
+        },
+        "randomizeAnswers": {
+          "booleanValue": true
+        },
+        "enableTimer": {
+          "booleanValue": true
+        },
+        "randomizeQuestions": {
+          "booleanValue": true
+        },
+        "tabViolationPenalty": {
+          "integerValue": "1"
+        }
+      }
+    }
+  }
+}

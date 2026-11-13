@@ -1,0 +1,123 @@
+Created At: 2026-11-11T04:45:29+08:00
+Completed At: 2026-11-11T04:45:34+08:00
+The search for "firestore rest api documents batchWrite commit delete json format v1" returned the following summary:
+In the Google Cloud Firestore REST API (v1), there are two distinct ways to execute multiple write and delete operations:
+
+1. **`documents:batchWrite`**: Applies a batch of writes **non-atomically** and independently. Operations can execute out of order, and you cannot have more than one write per document in a single request[1].
+2. **`documents:commit`**: Commits a set of writes **atomically** (either all succeed or all fail together) and in strict order[2].
+
+---
+
+### 1. Endpoint URLs
+
+* **Batch Write (`batchWrite`)**:
+  ```http
+  POST https://firestore.googleapis.com/v1/projects/{projectId}/databases/{databaseId}/documents:batchWrite
+  ```
+* **Atomic Commit (`commit`)**:
+  ```http
+  POST https://firestore.googleapis.com/v1/projects/{projectId}/databases/{databaseId}/documents:commit
+  ```
+  *(Note: For default databases, `{databaseId}` is usually `(default)`[3]).*
+
+---
+
+### 2. JSON Payload Format (`v1`)
+
+Both endpoints accept a JSON body containing a `writes` array[1][2]. Each element in the array is a `Write` object that can perform operations like `update` (set/upsert), `delete`, or `transform`.
+
+#### Example JSON Payload (Containing a `delete` and an `update`):
+
+```json
+{
+  "writes": [
+    {
+      "delete": "projects/my-project-id/databases/(default)/documents/users/user_to_delete"
+    },
+    {
+      "update": {
+        "name": "projects/my-project-id/databases/(default)/documents/users/user_to_update",
+        "fields": {
+          "status": {
+            "stringValue": "active"
+          },
+          "loginCount": {
+            "integerValue": "5"
+          }
+        }
+      },
+      "updateMask": {
+        "fieldPaths": ["status", "loginCount"]
+      }
+    }
+  ]
+}
+```
+
+---
+
+### 3. Detailed Breakdown of Write Operations inside the JSON
+
+Inside the `writes` array, you can define different actions per object:
+
+* **Delete a Document:**
+  Provide the fully qualified resource name of the document to the `delete` field[4].
+  ```json
+  {
+    "delete": "projects/{projectId}/databases/{databaseId}/documents/{collection}/{documentId}"
+  }
+  ```
+
+* **Create / Update (Set) a Document (`update`):**
+  Provide the document path under `name`, wrap your data inside typed `fields`[5], and optionally specify an `updateMask` if you want a partial update (merge behavior)[6].
+  ```json
+  {
+    "update": {
+      "name": "projects/{projectId}/databases/{databaseId}/documents/{collection}/{documentId}",
+      "fields": {
+        "fieldName": { "stringValue": "text value" },
+        "numberField": { "integerValue": "10" },
+        "boolField": { "booleanValue": true }
+      }
+    }
+  }
+  ```
+
+---
+
+### 4. cURL Example (`commit` endpoint)
+
+Here is a full example using `cURL` to perform an atomic commit containing a document update and a document deletion simultaneously:
+
+```bash
+curl -X POST \
+  "https://firestore.googleapis.com/v1/projects/my-project-id/databases/(default)/documents:commit" \
+  -H "Authorization: Bearer YOUR_OAUTH2_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "writes": [
+      {
+        "update": {
+          "name": "projects/my-project-id/databases/(default)/documents/products/item123",
+          "fields": {
+            "price": { "doubleValue": 49.99 },
+            "inStock": { "booleanValue": true }
+          }
+        }
+      },
+      {
+        "delete": "projects/my-project-id/databases/(default)/documents/temp-cart/cart999"
+      }
+    ]
+  }'
+```
+
+Sources:
+[1] [google.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHsTGlMt9PGJdvn8hzrYhncoB7Ojpa6h1cVp038fmdShVMHXOvM7C5NeyCS3hOB0yr3IW0Op_yPl91IuV3c0nMUL7pmWg46tsmTuGUuuEuKt9gflS1SgbOgvBLbufOB03gZUApPfQl07ZYmXHuY7uguJt-uFQXuwKWts3d2QNrxCt9Q6_QUKcFn-BcOK_0qW2Yt2U41avHl9wSp)
+[2] [google.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE0YwawDr6iC1W0F2BalqW8_Q2a9g2UhBT22vaZNu1oja7h1gRMj4qw2WabWr96ojQyzRHXUdEo1w5dn2noMnZtCvLMtJ5TJ-pau8ggv6wEemNb25ocjguW5KlydIuUnKeb79bNSL5bs292YlhsLW5o67dgnnZHo_6QdNz9xo3QDGjDDpgLpy7hijFexT5FdqAQ1xGRFw==)
+[3] [github.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH3j6qXj-X_Pxvt26Q5NGL02w4RsSqb7vOkrnyWQcBXT7fzrWEUoT7s739YwF3IZ7W0cf6O7eoCDHYOa5PbKd4h-Fv3RntmYJCp3-wK6Dqnir1RVLeEmanZynddGlwnpL7-X8vO95IZSopeiWjUP6fxtgVkLYMv2C25)
+[4] [postman.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFm3SDLdBCM-bdxGGzvYJ0mfKIBE8CKLzAV7sB-YuXGnVZExno3eESXAFysbgNb4PV6ZHlpzsiynZbzzDhSUXJntKWBO-xsbjck2GfmPCQSN_7oEa2Xeru60eF5U3cbviGd7wI4r_w5adWFaFm6etXE-GNw9fTRM1zLwsmBiLHyrAynUpToqqUTTJ91KX5MBiMEFL2r8N-7CXMC9YGoQQYIGmD-Nai7)
+[5] [medium.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFLhGUg92MFKD4_tabEE_FGkTqjRqz5_rGka7lKbgmyCeCw0waR3De7wvyhZGxx1_an1cHX4xiCewuSahyWDZ3su6bDTJzuVqjW1t137voXDEX126DW6Tqapd8ylGerYQbA9Vocnu3sx3hmSS4pp6HEEg==)
+[6] [stackoverflow.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFi_ntAYGK5w1I9jpGr9nFF4ICUT7RuW6O8CyfPmagfAEVUPSRswkIJ-BWUUFVb_YVAPloas3EjhpNRC1DHCThp2-kSrV7gplvswPRNjbjRuwT5fVt-PZmwUVAXDCI4m9dnQKgz6FYO-jbNwDlEebYhVf0Tt2DXa05JskJtuH0xCsSSX4vQpYBUdaFJ0bLruy3q5nQ=)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

@@ -1,0 +1,27 @@
+Created At: 2026-11-11T05:35:26+08:00
+Completed At: 2026-11-11T05:35:31+08:00
+Command exited with code 1.
+
+Command output:
+node:internal/deps/undici/undici:14902
+      Error.captureStackTrace(err);
+            ^
+
+TypeError: Failed to parse URL from projects/sir-jasper-quiz/databases/(default)/documents/quizzes/active/submissions
+    at node:internal/deps/undici/undici:14902:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async [stdin]:7:21 {
+  [cause]: TypeError: Invalid URL
+      at new URL (node:internal/url:827:25)
+      at new Request (node:internal/deps/undici/undici:9776:25)
+      at fetch (node:internal/deps/undici/undici:10505:25)
+      at fetch (node:internal/deps/undici/undici:14900:10)
+      at fetch (node:internal/bootstrap/web/exposed-window-or-worker:75:12)
+      at [stdin]:7:27
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+    code: 'ERR_INVALID_URL',
+    input: 'projects/sir-jasper-quiz/databases/(default)/documents/quizzes/active/submissions'
+  }
+}
+
+Node.js v22.22.0

@@ -1,0 +1,5 @@
+Command exited with code 0.
+
+Command output:
+quizzes/active settings updated with autoRecordQuiz: true
+quizzes/template updated: true

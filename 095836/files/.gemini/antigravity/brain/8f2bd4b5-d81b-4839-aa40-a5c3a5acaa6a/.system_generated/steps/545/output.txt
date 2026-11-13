@@ -1,0 +1,5 @@
+Command exited with code 0.
+
+Command output:
+quizzes/active description updated: 20 items • 20 seconds per question • Do not switch tabs or windows.
+quizzes/template updated: true

@@ -1,0 +1,4 @@
+Command exited with code 0.
+
+Command output:
+Create submission response: SUCCESS: projects/sir-jasper-quiz/databases/(default)/documents/quizzes/active/submissions/ez5H2wheay0z3BOxE4GH

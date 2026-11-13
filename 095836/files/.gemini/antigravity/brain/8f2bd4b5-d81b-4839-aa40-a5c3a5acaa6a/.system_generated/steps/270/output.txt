@@ -1,0 +1,8 @@
+Command exited with code 0.
+
+Command output:
+
+index.html:323:    const defaultQuiz = {
+index.html:411:      initDisplay(defaultQuiz);
+
+

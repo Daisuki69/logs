@@ -1,0 +1,39 @@
+Command exited with code 0.
+
+Command output:
+[10532:6712:1109/050303.866:ERROR:chrome\browser\task_manager\providers\fallback_task_provider.cc:126] Every renderer should have at least one task provided by a primary task provider. If a "Renderer" fallback task is shown, it is a bug. If you have repro steps, please file a new bug and tag it as a dependency of crbug.com/739782.
+[10532:6712:1109/050304.668:ERROR:components\edge_auth\edge_auth_errors.cc:540] EDGE_IDENTITY: Image Fetch FAILED: Error: Primary Error: kAccountImageFetchFailure, Secondary Error: kUnspecified, Platform error: 0, Error string: [empty]
+
+<!DOCTYPE html>
+<html><head><title>Test Module Direct</title></head>
+<body>
+<div id="status">Testing direct module...</div>
+<script type="module">
+  try {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js");
+    const { getFirestore, doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js");
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyBkqJ9WvtXfGJt19XK7SLK9v5cJwp4EVII",
+      authDomain: "sir-jasper-quiz.firebaseapp.com",
+      projectId: "sir-jasper-quiz",
+      storageBucket: "sir-jasper-quiz.firebasestorage.app",
+      messagingSenderId: "932129654171",
+      appId: "1:932129654171:web:793aa17dd1f130a62f4d3e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const snap = await getDoc(doc(db, "quizzes", "active"));
+    if (snap.exists()) {
+      document.getElementById("status").textContent = "GSTATIC MODULE SUCCESS: " + snap.data().title;
+    } else {
+      document.getElementById("status").textContent = "GSTATIC SNAP DOES NOT EXIST";
+    }
+  } catch (err) {
+    document.getElementById("status").textContent = "GSTATIC ERROR: " + err.message;
+  }
+</script>
+
+
+</body></html>

@@ -1,0 +1,8 @@
+Command exited with code 0.
+
+Command output:
+Firestore fetch error: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+RTDB status: 404 {
+  "error" : "404 Not Found"
+}
+

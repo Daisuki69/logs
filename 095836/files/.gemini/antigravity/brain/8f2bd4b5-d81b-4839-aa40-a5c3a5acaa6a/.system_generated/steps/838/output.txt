@@ -1,0 +1,58 @@
+Created At: 2026-11-10T12:39:09+08:00
+Completed At: 2026-11-10T12:39:14+08:00
+The search for "window.crypto.subtle file:// protocol origin null secure context chrome firefox safari" returned the following summary:
+When you open an HTML file directly from your local file system using the **`file://` protocol** (e.g., double-clicking an `.html` file or typing `file:///path/to/file.html` into your browser address bar), browsers treat the origin as **`null`**[1]. 
+
+Because `file://` / `null` origin is **not** considered a secure context, **`window.crypto.subtle` will be `undefined`** (or throw errors when used) across modern browsers like Chrome, Firefox, and Safari[2][3].
+
+---
+
+### Why does this happen?
+The Web Crypto API (`window.crypto.subtle`) provides powerful low-level cryptographic functions[4]. Per the W3C Web Cryptography specification and browser security policies, these features are restricted to **Secure Contexts** to prevent malicious scripts from arbitrarily handling sensitive cryptographic keys or data[2][5]. 
+* **Secure contexts** are defined as pages delivered via **HTTPS**, or locally via **`localhost` / `127.0.0.1`**[2][3].
+* The **`file://` protocol** lacks a secure origin concept (mapping to an opaque origin of `null`), meaning browsers disable `crypto.subtle` entirely[3][1].
+
+---
+
+### Browser Behavior Matrix (`file://` protocol)
+
+| Browser | Behavior with `file://` (`crypto.subtle`) | Console Error / Symptom |
+| :--- | :--- | :--- |
+| **Google Chrome / Edge** | `window.crypto.subtle` is **`undefined`**[5][3] | `TypeError: Cannot read properties of undefined (reading 'digest' / 'encrypt' / etc.)`[3] |
+| **Mozilla Firefox** | `window.crypto.subtle` is **`undefined`**[3] | `TypeError: window.crypto.subtle is undefined`[3] |
+| **Apple Safari** | `window.crypto.subtle` may be undefined or throw security/secure-context exceptions depending on the OS/Safari version. | Restricted due to lack of secure context. |
+
+---
+
+### How to Fix It
+
+To use `window.crypto.subtle`, you must stop running your file through the `file://` protocol and instead serve it through a local development web server using `http://localhost`[6][7]. 
+
+Quick ways to spin up a local server include:
+
+1. **VS Code (Live Server Extension):**
+   * Install the *Live Server* extension by Ritwick Dey[6][8].
+   * Right-click your HTML file inside VS Code and select **"Open with Live Server"**[6]. It will automatically serve your page at `http://127.0.0.1:[port]`[3].
+2. **Node.js (`npx serve`):**
+   * Open your project folder in a terminal and run[6]:
+     ```bash
+     npx serve
+     ```
+   * Open the provided `http://localhost:[port]` URL in your browser[6].
+3. **Python (Built-in Server):**
+   * Run the following command in your project directory:
+     * **Python 3:** `python3 -m http.server`
+     * **Python 2:** `python -m SimpleHTTPServer`
+   * Navigate to `http://localhost:8000` in your browser.
+
+Sources:
+[1] [github.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH0whcEigwKI1qzZ4GwBQyNBKe1c5lxa6E30CpmPRyw_S7tJ7QWjhCYXGTuImZD4YR7z1j_iBUeYwgW13ccTBJ8T62c1uyjbx76pnZDOW2wqRJzrqsi5oeY3X3xdLTX44DhiivVvVt5Vvywjsp4l899VewSr6LKcHY=)
+[2] [stackoverflow.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG5z_-BBvuKF28xbrffmiHTVw2WdOJcf5YuZgpE1yZNFxSJIBAAu7WODZ2shjmghQSipG_oO-oAggIypH42GkGkHpDLtEQdIlXLLptLzA9a52E21-rACYplLsdoQHITfgCrn_ecytxHgx1OP764dziOH7b6ihwBMbU6-aW5gcy9PWobHGwYyi7SoNKGJxPj_c7tYdy-JCv0XodBUoKPE1aXCRmAfLPURA_8lereEYF6dg==)
+[3] [authgear.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE_jUMFZRX0m39qIx_2WKPwgdZCPPKJc2W81gCIc05Mrlwy4Mk9OCqErZgiQqA6PZshmqZOCgU-Lg-NncaW_PhZV9fI9u9r3GASrriE8YjNSjtL-zkMCg7pURDxnpGA7p20vSSd0JaarDVRajoXz8y5j6hptcnGdRZDCxFR9xkyzqtSLr7VDOjk2kccbCrEAQjApi1_by2gIWu-wBftrg==)
+[4] [mozilla.org](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFjGHrYSobaTc77cEqOHGYtCwSVpIQ_MxelnSref1hv8ldR84WLm4lB5XdKZLvaQ-6HNsZTzxZz6FpjqkNOUUtXEPWbuVnjGT02g40uk4LdpqY9OX2BFTzUT-5NUiEtn4BjWEeJZTGINn5Eflae5Io1EbQZ)
+[5] [stackoverflow.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFHrZ5q8_q7ODAfhrSifhYctNjsthTfM5GLpjYSgol66fDyyz3bTgrv2IxqotSjpZNpTZRer9VFF-jYOnghizMT8h1F6aF4k9F9UOuAkQJEgCkp6h7Zt2zNyITCNitDPKR8NBcw_KvihNkpX-XQstEwtb4mm1fRI-Qz8K1SYZTkoR2FFWsXwGI45KTUP9jOFo3ERmWLXVUEUr5snYmpmdJeI1w9Dd13)
+[6] [stackoverflow.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGrK0MU32IiXgqKaItVmjq38yihJi_S2fCFebMOzI-U7w2Ko2M74vQbGV2AKKNdM5fDv3G5aRNsxOaiefhdcbKvTxJcNhD-bbuiGELzDFTzJ9A3mV-JQeOEqpEz8BMEM-wb-uB3VHASp81hsMmO-cjl6xFLxGxoKtODZTnVxL9fkO9p9FoJiDfHXU7yqchAsuCbVuZ-3uYuPSZxf0MT0QQwr3iMNg4mUA==)
+[7] [freecodecamp.org](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHCP6Or9WU232Pby8lZmGIR4BTGq5TbFr_cD1TYp0_Hc49UNnYhA3sxYbUPHLzGdkvu8txjWtGopgPZtlxo4BBe4YL-IAiQfPzw-otjoYb0RE1MjL1Skd5k5zorCmh8tmxiytrJW-p4SMXrVf0txKgdvBTWOjutrKPZB6YDsnUQ235C9-y7Sa39nxlV1zQeveNFSuhIdsXwHoacVazJ6z8fq79VvE83lJl3KtDgLUL5fBo=)
+[8] [webnots.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQExXX4OL-cQKsz2-cvt3Ed6y0-wQPOUeM3N75HfvCHqpluNRoqoNhcsaPgYf23riD5Vc6dxQar7AC3W2HDj7RYdc0rk4QA9S54rLc-oY5r4Zk6Oe27bs6zvePl_zAVMtakl4tIp3khrap_kZs4WzPFoPV39JHmDvaauSlD5cw_eAip7eAruSVYZgUz4yN58lYYb)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

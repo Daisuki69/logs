@@ -1,0 +1,20 @@
+Created At: 2026-11-11T06:05:33+08:00
+Completed At: 2026-11-11T06:05:36+08:00
+Command exited with code 0.
+
+Command output:
+=== S:\Users\Admin contents ===
+=== Check AppData\Roaming\Antigravity on C: and S: ===
+
+=== Check S: Antigravity installs ===
+=== Check sqlite/db references to 8f2bd4b5 on C: ===
+agyhub_summaries_proto.pb bytes: 9376 contains 8f2bd4b5: true
+antigravity_state.pbtxt bytes: 951 contains 8f2bd4b5: false
+conversation_summaries.db bytes: 5808128 contains 8f2bd4b5: true
+FullName                                           
+--------                                           
+C:\Users\CxAdmin\AppData\Roaming\Antigravity       
+C:\Users\CxAdmin\AppData\Roaming\Antigravity IDE   
+C:\Users\CxAdmin\AppData\Roaming\Google Antigravity
+
+

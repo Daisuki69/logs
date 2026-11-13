@@ -1,0 +1,9 @@
+Command exited with code 0.
+
+Command output:
+
+Name                Length LastWriteTime         
+----                ------ -------------         
+QUIZ06 (1) (1).html  16327 08/11/2026 10:18:50 pm
+
+

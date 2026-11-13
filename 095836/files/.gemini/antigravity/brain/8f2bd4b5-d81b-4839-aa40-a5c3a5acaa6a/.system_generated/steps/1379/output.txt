@@ -1,0 +1,55 @@
+Command exited with code 0.
+
+Command output:
+1. Default Dashboard render, :runQuery projection [label,quizOrder,title], minimal buttons PASSED
+2. Rename Quiz 2 -> Midterm C: Exam? & Firestore patchFields persistence PASSED
+3. Add more Quiz created Quiz 3 cleanly PASSED
+4. Load Quiz 1 -> hydrated Editor + downloaded "Quiz 1.html" PASSED
+4b. Top Back button from Submissions -> Dashboard & URL cleanup PASSED
+4c. Browser Back (popstate) -> Dashboard restore PASSED
+5. Switching to Quiz 2 -> isolated state, preserved label, downloaded "Midterm C_ Exam_.html" PASSED
+6. Standalone downloaded Quiz 2 file isolated lock & routed to quiz_2 PASSED
+7. Reserved Windows device name sanitization (CON -> _CON.html) PASSED
+8. Live Firestore :runQuery metadata roundtrip & cleanup PASSED
+ALL MULTI-QUIZ DASHBOARD, RENAME, ADD & AUTO-FILENAME VERIFICATIONS PASSED!
+Audit OK: 0 forbidden traces, 0 comments, Reset tab removed, updated modal warning present
+1. Case ON (autoRecordQuiz=true): cleared students, bumped lockEpoch=1794348199861, cleared local lock
+2. Case ON: locked student unlocked on reload after Clear Students
+3. Case OFF (autoRecordQuiz=false): Clear Students worked, bumped lockEpoch=1794348211787, cleared leftover sub, kept Notice
+4. Case OFF: locked student unlocked on reload after Clear Students
+5. Cleanup temporary probe doc HTTP: 200
+ALL COMBINED CLEAR STUDENTS + RESET LOCK TESTS PASSED!
+PASS [index.html] autoRecordQuiz=false: posts=0, res-actions=flex, lkdl.hide=false
+PASS [index.html] autoRecordQuiz=true: posts=1, res-actions=none, lkdl.hide=true
+PASS [index.html] legacy settings omitted: posts=1, res-actions=none, lkdl.hide=true
+PASS [teacher.html] autoRecordQuiz=false hides badge/desc, shows Notice, keeps Clear Students clickable with 0 polling fetches
+PASS [teacher.html] Toggle ON/OFF, visibility & tab-aware poller, mid-flight AbortController cancellation
+PASS [index.html] offline vault autoRecordQuiz=false: posts=0, res-actions=flex, lkdl.hide=false
+ALL AUTO RECORD QUIZ GATE & SUBMISSIONS NOTICE VERIFICATIONS PASSED!
+Static audit OK: 4 start rules intact, zero visible mention of screenshot/watermark/blur
+Watermark SVG verified: Ana &amp; &quot;Ben&quot; • BSIT-2A &lt;Sec&gt;
+Silent blur, visibility, keydown/keyup PrintScreen, Cmd/Ctrl+Shift+4/5 pulse & zero-violation checks PASSED
+finish() cleanup & 0-violation submission payload PASSED
+showLock() watermark suppression PASSED
+Regression check (enableTabViolation=true keeps counting switches + masks exam) PASSED
+ALL STEALTH MASK & WATERMARK VERIFICATIONS PASSED!
+Workspace check: raw/ and .vercelignore deleted
+index.html: 0 forbidden traces (including fetch & helper names)
+teacher.html: 0 forbidden traces (including fetch & helper names)
+index.html: 0 comments verified
+teacher.html: 0 comments verified
+Both index.html and teacher.html have valid #local-runtime-cipher + obfuscated <script> bootstrapper
+Hardened index.html live loadQuiz -> title: C Programming: Switch Case Quizasdasdsss | go.disabled: false
+Hardened teacher.html live Dashboard->Load Quiz 1 -> status: Loaded Quiz 1. | qtitle: C Programming: Switch Case Quizasdasdsss
+Downloaded index.html injected #local-db-vault bytes: 676
+Offline downloaded index.html vault decryption -> title: C Programming: Switch Case Quizasdasdsss | go.disabled: false
+ALL HARDENED RUNTIME & OFFLINE VAULT TESTS PASSED!
+
+Name                Length LastWriteTime         
+----                ------ -------------         
+QUIZ06 (1) (1).html  16327 08/11/2026 10:18:50 pm
+index.html          320370 11/11/2026 5:54:43 am 
+teacher.html        568703 11/11/2026 6:02:16 am 
+HISTORY.md           19758 11/11/2026 6:02:17 am 
+
+

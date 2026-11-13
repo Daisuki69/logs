@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test Fetch</title></head>
+<body>
+<div id="status">Testing...</div>
+<script>
+  const apiKey = "AIzaSyBkqJ9WvtXfGJt19XK7SLK9v5cJwp4EVII";
+  const projectId = "sir-jasper-quiz";
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/quizzes/active?key=${apiKey}`;
+
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById("status").textContent = "FETCH SUCCESS: " + data.fields.title.stringValue;
+    })
+    .catch(err => {
+      document.getElementById("status").textContent = "FETCH ERROR: " + err.message;
+    });
+</script>
+</body>
+</html>

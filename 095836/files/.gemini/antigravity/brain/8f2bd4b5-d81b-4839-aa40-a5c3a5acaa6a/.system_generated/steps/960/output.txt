@@ -1,0 +1,5 @@
+Command exited with code 0.
+
+Command output:
+
+added 114 packages in 22s

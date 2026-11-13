@@ -1,0 +1,69 @@
+Created At: 2026-11-12T09:52:35+08:00
+Completed At: 2026-11-12T09:52:44+08:00
+The search for "SQLite WAL replace database file while open in another process corruption backup API" returned the following summary:
+Replacing or overwriting an SQLite database file on disk while it is actively open and in use by another process—especially when **WAL (Write-Ahead Logging) mode** is enabled—is a direct recipe for **database corruption or sudden application crashes**[1][2]. 
+
+---
+
+### Why File-Level Replacement Fails in WAL Mode
+
+1. **Multiple Files Constitute the Database:** In WAL mode, SQLite relies on three files working in unison: `database.db` (the main file), `database.db-wal` (the write-ahead log containing recent committed transactions), and `database.db-shm` (shared memory index)[3][4]. 
+2. **Stale/Mismatched WAL State:** If you overwrite only the main `database.db` file with a new version while leaving the old process running, the target process still holds an open file descriptor/handle to the *old* content, or it will look at the existing `-wal` and `-shm` files which do not match the new database pages[2][5]. This mismatch causes immediate logical corruption (`SQLITE_CORRUPT`)[6].
+3. **OS-Level Locking Behavioral Differences:** 
+   * On **Windows**, you cannot overwrite an open file at all; the file replacement operation will throw a "file in use / permission denied" error.
+   * On **Linux/Unix**, you *can* delete or overwrite a file inode while a process has it open, but the running process keeps writing/reading the *old* unlinked file descriptor, meaning it will completely ignore your replacement file until restarted[2].
+
+---
+
+### The Correct Solutions
+
+Depending on your workflow, you should use either the **SQLite Online Backup API** or coordinate a **clean application-level restart**.
+
+#### Solution 1: Use the SQLite Online Backup API (Programmatic Replacement)
+If you want to update/replace the contents of a live database cleanly without shutting down concurrent processes, **never overwrite files via shell commands (`cp`, `mv`, `rsync`)**. Instead, use SQLite’s built-in **Online Backup API** (`sqlite3_backup_init`, `sqlite3_backup_step`, `sqlite3_backup_finish`)[3][7].
+
+The backup API acts *safely* across processes because it reads pages transactionally through SQLite's locking mechanism, safely handling WAL checkpoints on the fly.
+
+* **In Python (`sqlite3`):**
+  ```python
+  import sqlite3
+
+  # Open connection to the target (live) database that needs to be updated
+  dst_conn = sqlite3.connect("/path/to/live_database.db")
+
+  # Open connection to your new/source database file
+  src_conn = sqlite3.connect("/path/to/new_replacement_data.db")
+
+  with dst_conn:
+    # Safely copy the source database over the live destination database page-by-page
+    src_conn.backup(dst_conn)
+
+  src_conn.close()
+  dst_conn.close()
+```
+* **Via Command Line Shell (`sqlite3` CLI):**
+  ```bash
+  sqlite3 live_database.db ".restore new_replacement_data.db"
+  ```
+  *(Note: The `.restore` command uses the Backup API under the hood, safely pushing the new state into the target database even if other readers/writers are interacting with it).*
+
+---
+
+#### Solution 2: Graceful Close, Replace, and Reopen (For Full File Swaps)
+If your goal is to completely swap out the physical database file from an external deployment script or installer, you **must coordinate with the processes holding it open**[2]:
+
+1. **Signal the application(s)** running against the database to close their connections gracefully[2]. This forces SQLite to flush and checkpoint the `-wal` file into the main `.db` file and delete the `-wal`/`-shm` companion files[8][2].
+2. **Perform the file replacement:** Safely swap/overwrite the `.db`, `.db-wal`, and `.db-shm` files simultaneously (or just the `.db` file if you are certain no WAL file exists post-checkpoint)[1][2].
+3. **Restart the application(s)** so they open fresh file handles to the new database[2].
+
+Sources:
+[1] [reddit.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEjLZ-2BDDUyTiQKP8aaJM6skddjK91gK_zxswX8T1JzO1vCFb6LxZfS8OejiQ_HlRIZ1onygoCGMqkw_SmAqbve2ohvPlWO8JTwmmQbzgxnkr7dJnpmAj2dEZS2TOHtU8EYQQB3vpQK0uBW8TVR3d7QHTfZO8IZK7UyLmZMTfoLxfub8upjlsB8t7RhjpOUluqoGg=)
+[2] [stackoverflow.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH2e2pdMceiOE4m23kQIvvNWKSwVsSXYxVGaPdq7gKz5LV80CAvN9FlgCPIaGcV3y2ymATjUwPMfNcSSN0Kqp1xdHTTBsoSg2ljrehLTX_MAKcOSrRboZlw0b87zl-FrkswyT9Pq7A_m7BX5Zx7_QFT8zZRspOrlZPPRbbC5B_ss7XgdWWkhqa5VptV5ac=)
+[3] [dev.to](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE4FPtazQW8whleTcuhDSQ3YoakdhLUge7YMwxOiex4dVhoXk_s4_NbMgYZg63jcimm0zq78f4NAeGInmYOJE2TmDwo3bTgOJgzrlaEgJfLjf7EmafTKQ8PVj9wHnwLws6L4DtJVfubnmBiGfgq-fvE8kuxjvcpAvEdnFKJX7I-0Z8wsKulZw-p6NYXwsL4H02umV4vce-rJBufsowM7Sa0H6WPpA==)
+[4] [coddy.tech](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGyVc8aUwPs9TYdBNUUeV5wfqT9hMwx35lG0TDh5NzKNS-ksDe33gJpf8m1PEaIfeldtMsqQCR1v1mWKJvqV9kRw2xYlfKx_JwhGWTFbjlHAlghYBHPoZLKqyHgIG1wJTBfRSPEDaTNGsDezkw=)
+[5] [sqlite.org](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE6HxbPcpwsXQlruBm5T5-sNqOd-wqfgllwSZVT3Z_GnAMhhiZwdHhu4W8E9B4a45zV0kNOrmFQLJGOKOvd0EqB3OlWOacpNa2ntCL9JuUdzFMKFH91DmZZltZCg_GAbfzWnPg=)
+[6] [scottspence.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHOigwLdgPSDDSSIJd-wYiXOcJNv_JNg0I8i1qZxlu6dAmAAXH55yHNNeK3fpt8aAoZt14ROpl_dOJdjOa6DN8wE-nWYTg12vy-caIlI8hIPMpmL4Cz0zpfBKR5su3pT-WtlY9wmvJcBf5LVcxXwb8U8NVrFyRq)
+[7] [kunalganglani.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE0qtT84jr85PSdPjBUgJynHhiu_Y0YvZLikpqQIQemsl0N5pc9_G2uIv6s-IB8iRfR8M4KlVnLbVRf5B8pJBG-_x1-i9jYr60IZgorAiQTEY2_4i0awnUiysOpKEVSILjVpDyUiW-JNxRC6pPIzB1sRw==)
+[8] [sqlite.org](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG0MGlH52xVnzbFhAciVrrw3roi0lWd9ZS9jvaJE9vYs05FNPTRuLaz6rscGc8N9Kyc44HUhJydBpG8kIfY-CIokWPNfPDog38QrMVUmmbfA9FH-_k=)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

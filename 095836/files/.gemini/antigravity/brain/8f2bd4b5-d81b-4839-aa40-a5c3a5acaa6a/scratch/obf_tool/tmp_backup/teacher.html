@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teacher Quiz Editor</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--tx:#1b2333;--mu:#5d6779;--pr:#2f5bea;--ok:#12a150;--bad:#d93036;--bd:#dde2ee}
+@media(prefers-color-scheme:dark){:root{--bg:#10141f;--card:#1a2030;--tx:#e8ecf6;--mu:#9aa5bb;--pr:#6f93ff;--ok:#39c47a;--bad:#ff6b70;--bd:#2c354b}}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--tx);padding:16px}
+.wrap{max-width:760px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:20px;margin-bottom:14px}
+h1{font-size:1.4rem;margin:0 0 6px}h2{font-size:1.1rem;margin:0 0 10px}
+p,li{color:var(--mu);line-height:1.5}
+input,textarea{width:100%;padding:12px;margin:6px 0 14px;border:1px solid var(--bd);border-radius:10px;font-size:1rem;background:var(--bg);color:var(--tx);font-family:inherit}
+button{font-size:1rem;padding:12px 20px;border:0;border-radius:10px;background:var(--pr);color:#fff;cursor:pointer;font-weight:600}
+button.sec{background:transparent;color:var(--pr);border:1px solid var(--pr)}
+button.danger{background:transparent;color:var(--bad);border:1px solid var(--bad)}
+.hide{display:none!important}
+.top{display:flex;justify-content:space-between;align-items:center;font-weight:600;margin-bottom:8px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.opt-toggle{display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--bg);border:1px solid var(--bd);border-radius:10px;margin-bottom:10px}
+.badge{font-size:0.8rem;padding:3px 8px;border-radius:12px;background:var(--bd);color:var(--tx);font-weight:700}
+.badge.on{background:var(--ok);color:#fff}
+.badge.off{background:var(--mu);color:#fff}
+.q-card{border-left:4px solid var(--pr)}
+.correct-box{border-color:var(--ok)!important}
+.wrong-box{border-color:var(--bd)}
+.floating-add{position:sticky;bottom:16px;display:flex;justify-content:center;z-index:5}
+.plus-btn{border-radius:30px;padding:14px 28px;box-shadow:0 4px 14px rgba(0,0,0,0.15);font-size:1.1rem;display:flex;align-items:center;gap:8px}
+.edge-tab-btn{position:fixed;right:0;top:120px;z-index:90;background:var(--pr);color:#fff;border:none;border-radius:10px 0 0 10px;padding:12px 10px;cursor:pointer;box-shadow:-2px 3px 10px rgba(0,0,0,0.18);display:flex;align-items:center;justify-content:center}
+.edge-panel{position:fixed;top:0;right:-400px;width:340px;max-width:88vw;height:100vh;background:var(--card);border-left:1px solid var(--bd);box-shadow:-4px 0 24px rgba(0,0,0,0.2);z-index:200;transition:right .25s ease;padding:20px;overflow-y:auto;box-sizing:border-box}
+.edge-panel.open{right:0}
+.edge-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:190;opacity:0;pointer-events:none;transition:opacity .25s ease}
+.edge-overlay.open{opacity:1;pointer-events:auto}
+.tab-nav{display:flex;gap:8px;margin-bottom:14px;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:6px}
+.tab-item{flex:1;padding:10px 14px;border:none;border-radius:8px;background:transparent;color:var(--mu);font-weight:600;font-size:0.95rem;cursor:pointer;transition:all .15s ease}
+.tab-item.active{background:var(--pr);color:#fff}
+.sub-card{background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.sub-meta{font-size:0.85rem;color:var(--mu);margin-top:4px}
+.sub-score{font-size:1.15rem;font-weight:700;color:var(--ok);text-align:right}
+.warn{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px}
+.dash-row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.dash-load{flex:1;text-align:left}
+.dash-ren{padding:12px 16px;white-space:nowrap}
+</style>
+</head>
+<body>
+<button id="opt-btn" class="edge-tab-btn hide" type="button" aria-label="Quiz Options" title="Quiz Options">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+  </svg>
+</button>
+
+<div id="edge-overlay" class="edge-overlay"></div>
+
+<aside id="options-panel" class="edge-panel">
+  <div class="top" style="margin-bottom:16px">
+    <h2 style="margin:0">Quiz Options</h2>
+    <button id="close-opt-btn" class="sec" type="button" style="padding:4px 10px;font-size:0.9rem">✕</button>
+  </div>
+  
+  <div class="opt-toggle">
+    <div>
+      <b>Auto Randomize Questions</b>
+      <div style="font-size:0.85rem;color:var(--mu)">Shuffle question sequence for every student</div>
+    </div>
+    <button id="btn-rand-q" class="sec" style="padding:6px 14px;font-size:0.9rem">ON</button>
+  </div>
+
+  <div class="opt-toggle">
+    <div>
+      <b>Auto Randomize Answers</b>
+      <div style="font-size:0.85rem;color:var(--mu)">Shuffle A, B, C, D choices per question</div>
+    </div>
+    <button id="btn-rand-a" class="sec" style="padding:6px 14px;font-size:0.9rem">ON</button>
+  </div>
+
+  <div class="opt-toggle">
+    <div>
+      <b>Switching Tab Violation</b>
+      <div style="font-size:0.85rem;color:var(--mu)">Deduct points when tab or window loses focus</div>
+    </div>
+    <button id="btn-tab-v" class="sec" style="padding:6px 14px;font-size:0.9rem">ON</button>
+  </div>
+
+  <div id="pen-box" style="margin-left:14px;margin-bottom:12px">
+    <label style="font-size:0.9rem">Points Deducted per Violation
+      <input id="pen-val" type="number" min="0" max="100" value="1" style="max-width:140px;margin-bottom:6px">
+    </label>
+  </div>
+
+  <div class="opt-toggle">
+    <div>
+      <b>Timer per Question</b>
+      <div style="font-size:0.85rem;color:var(--mu)">Force automatic progression when time expires</div>
+    </div>
+    <button id="btn-timer" class="sec" style="padding:6px 14px;font-size:0.9rem">ON</button>
+  </div>
+
+  <div id="time-box" style="margin-left:14px;margin-bottom:12px">
+    <label style="font-size:0.9rem">Seconds per Question
+      <input id="time-val" type="number" min="5" max="3600" value="20" style="max-width:140px;margin-bottom:6px">
+    </label>
+  </div>
+
+  <div class="opt-toggle">
+    <div>
+      <b>Auto Record Quiz</b>
+      <div style="font-size:0.85rem;color:var(--mu)">Record submissions instead of downloading file or base64 conversion</div>
+    </div>
+    <button id="btn-auto-rec" class="sec" type="button" style="padding:6px 14px;font-size:0.9rem">ON</button>
+  </div>
+</aside>
+
+<div class="wrap">
+
+<div id="ws-bar" class="hide" style="display:flex;align-items:center;margin-bottom:10px">
+  <button id="back-dash-btn" class="sec" type="button" style="padding:8px 14px;font-size:0.9rem">&#8592; Back</button>
+</div>
+
+<nav id="main-nav" class="tab-nav hide">
+  <button id="tab-btn-dash" class="tab-item" type="button">Dashboard</button>
+  <button id="tab-btn-editor" class="tab-item active" type="button">Quiz Editor</button>
+  <button id="tab-btn-sub" class="tab-item" type="button">Submissions</button>
+</nav>
+
+<div id="view-dash">
+  <div class="card">
+    <h1 style="margin:0 0 14px">Teacher Quiz Manager</h1>
+    <div id="dash-list"></div>
+    <p id="dash-msg" class="hide" style="margin:6px 0 12px;font-weight:600"></p>
+    <button id="add-quiz-btn" class="sec" type="button" style="width:100%">Add more Quiz</button>
+  </div>
+</div>
+
+<div id="view-editor" class="hide">
+<div class="card">
+  <div class="top">
+    <h1>Teacher Quiz Manager</h1>
+    <span id="active-quiz-badge" class="badge">Quiz 1</span>
+  </div>
+  
+  <label>Quiz Title
+    <input id="qtitle" placeholder="e.g. C Programming: Switch Case Quiz">
+  </label>
+  <label>Quiz Description
+    <input id="qdesc" placeholder="e.g. 20 items • 20 seconds per question • Do not switch tabs or windows.">
+  </label>
+  
+  <div class="row" style="margin-top:10px">
+    <button id="save-btn" type="button">Save to Quiz</button>
+    <button id="dl-quiz-btn" class="sec" type="button">Download Quiz File</button>
+  </div>
+  <p id="status-msg" style="margin:12px 0 0;font-weight:600"></p>
+</div>
+
+<div id="questions-container"></div>
+
+<div class="floating-add">
+  <button id="add-q-btn" class="plus-btn" type="button">+ Add Question</button>
+</div>
+</div>
+
+<div id="view-sub" class="hide">
+  <div class="card">
+    <div class="top">
+      <h2 style="margin:0">Completed Students</h2>
+      <div class="row" style="gap:8px">
+        <span id="sub-count-badge" class="badge">0 Done</span>
+        <button id="clear-sub-btn" class="danger" type="button" style="padding:4px 10px;font-size:0.85rem">Clear Students</button>
+      </div>
+    </div>
+    <p id="sub-desc" style="margin:6px 0 14px;font-size:0.9rem">Live list of students who have completed and submitted the quiz.</p>
+    <p id="sub-status-msg" class="hide" style="margin:0 0 10px;font-weight:600"></p>
+    <div id="sub-feed">
+      <p style="text-align:center;padding:24px;color:var(--mu);margin:0">Loading submissions...</p>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div id="confirm-modal" class="warn hide">
+  <div class="card" style="max-width:400px;text-align:center">
+    <h2 style="margin:0 0 16px;font-size:1.15rem">Clearing students also resets the response lock. Are you sure this is what you want?</h2>
+    <div class="row" style="justify-content:center;gap:12px">
+      <button id="modal-yes-btn" class="danger" type="button" style="padding:10px 24px">Yes</button>
+      <button id="modal-no-btn" class="sec" type="button" style="padding:10px 24px">No</button>
+    </div>
+  </div>
+</div>
+
+<div id="rename-modal" class="warn hide">
+  <div class="card" style="max-width:380px">
+    <h2 style="margin:0 0 10px;font-size:1.15rem">Rename Quiz</h2>
+    <input id="rename-input" maxlength="60" placeholder="Enter quiz name...">
+    <div class="row" style="justify-content:flex-end;gap:10px">
+      <button id="rename-cancel-btn" class="sec" type="button" style="padding:10px 18px">Cancel</button>
+      <button id="rename-save-btn" type="button" style="padding:10px 18px">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const _vK = [75,52,113,125,88,69,92,50,118,95,77,114,57,100,80,51];
+const _vB1 = [128,93,124,121,91,211,103,230,14,192,250,236,219,29,167,59,141,7,111,102,71,142,36,172,9,217,225,250,134,10,167];
+const _vB2 = [113,90,74,100,115,69,14,122,246,144,223,161,175,154,143,252,110,88,86,52,47,69,25,103,177,132,201,188,166,154];
+const _vB3 = [250,82,74,242,188,146,13,54,109,156,150,119,59,21,159,166,242,71,23,188,186,156,29,38,115,214,208,103,45];
+const _vN = [182,36,132,66,120];
+const _vQ = [47,6,151,169,228,86,77];
+const _vS = [123,124,74,132,33,186,27,192,231,231,219];
+const _vT = [238,210,87,103,182,22,14,178];
+const _vC = [250,50,143,92,109,120,84];
+const _vL = [67,101,253,146,217,134,181,207,153,168,47,69,12];
+const _vU = [91,211,170,98,26,6,67,162,221,72,96,229,135,134,226,39,126,194,186,107,29,94];
+const _vF = [7,105,230,148,218,186,130,220,152,232,113,1,93,51,32,88,19,120,230,171,213,177,161,216,136,249,123,8,86,49,49,107,21,113,225,152,200,191,187,210,152,248,117,19,98,60,56,72,17,97,250,136,216,177,130,220,152,232,113,1,85,47,38,92,13,75,245,145,193,184,168,208,149,237,66,28,88,40,49,65,18,116,241,145,208,174,168,203,149,241,97,24,71];
+const _vR = [152,221,55,97,179,26,231,189,91];
+const _vM = [157,151,252,54,77,215,187,113,11,7,95,182,203,81,55,255,136,145,225,46,82,192,161,111,2,6,109,183,199,76,32,202,138,159,253,38,66,198,173,119,18,5,103,166,194,71,61,255,136,138,235,47,74,243,175,119,6,31,106,172,205,86,35,230,128,151,242,47,79,193,171,111,18,18,123,170,212,108,60,231,139,145,242,55,71,215,162,102];
+
+function _dec(arr, s) {
+  let out = '';
+  for (let i = 0; i < arr.length; i++) {
+    s = (s * 31 + 17) & 255;
+    out += String.fromCharCode(arr[i] ^ s);
+  }
+  return out;
+}
+
+const _fk = _dec(_vF, 61).split('|');
+const _mk = _dec(_vM, 131).split('|');
+const _base = () => _dec(_vB1, 73) + _dec(_vB2, 149) + _dec(_vB3, 211);
+const _req = (u, o) => globalThis[_dec(_vN, 97)](u, o);
+
+function _cipherBytes(bytes, nonce) {
+  const key = [];
+  for (let i = 0; i < _vK.length; i++) key.push((_vK[i] ^ 29) & 255);
+  for (let i = 0; i < nonce.length; i++) key.push(nonce[i]);
+  const s = new Uint8Array(256);
+  for (let i = 0; i < 256; i++) s[i] = i;
+  let j = 0;
+  for (let i = 0; i < 256; i++) {
+    j = (j + s[i] + key[i % key.length]) & 255;
+    const t = s[i]; s[i] = s[j]; s[j] = t;
+  }
+  const out = new Uint8Array(bytes.length);
+  let a = 0, b = 0;
+  for (let i = 0; i < bytes.length; i++) {
+    a = (a + 1) & 255;
+    b = (b + s[a]) & 255;
+    const t = s[a]; s[a] = s[b]; s[b] = t;
+    out[i] = bytes[i] ^ s[(s[a] + s[b]) & 255];
+  }
+  return out;
+}
+
+function sealPayload(obj) {
+  const raw = new TextEncoder().encode(JSON.stringify(obj));
+  const nonce = new Uint8Array(8);
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(nonce);
+  } else {
+    for (let i = 0; i < 8; i++) nonce[i] = Math.floor(Math.random() * 256);
+  }
+  const enc = _cipherBytes(raw, nonce);
+  const combined = new Uint8Array(8 + enc.length);
+  combined.set(nonce, 0);
+  combined.set(enc, 8);
+  let bin = '';
+  for (let i = 0; i < combined.length; i++) bin += String.fromCharCode(combined[i]);
+  return btoa(bin);
+}
+
+function toStoreVal(x) {
+  if (x == null) return { [_fk[4]]: null };
+  if (typeof x === 'boolean') return { [_fk[3]]: x };
+  if (typeof x === 'number') return Number.isInteger(x) ? { [_fk[1]]: String(x) } : { [_fk[2]]: x };
+  if (typeof x === 'string') return { [_fk[0]]: x };
+  if (Array.isArray(x)) return { [_fk[5]]: { [_fk[8]]: x.map(toStoreVal) } };
+  return { [_fk[6]]: { [_fk[7]]: toStoreFields(x) } };
+}
+
+function toStoreFields(obj) {
+  const f = {};
+  for (const [k, v] of Object.entries(obj || {})) {
+    if (v !== undefined) f[k] = toStoreVal(v);
+  }
+  return f;
+}
+
+function fromStoreVal(v) {
+  if (!v) return null;
+  if (_fk[0] in v) return v[_fk[0]];
+  if (_fk[1] in v) return Number(v[_fk[1]]);
+  if (_fk[2] in v) return Number(v[_fk[2]]);
+  if (_fk[3] in v) return Boolean(v[_fk[3]]);
+  if (_fk[4] in v) return null;
+  if (_fk[5] in v) return (v[_fk[5]][_fk[8]] || []).map(fromStoreVal);
+  if (_fk[6] in v) return fromStoreDoc(v[_fk[6]]);
+  return null;
+}
+
+function fromStoreDoc(doc) {
+  const out = {};
+  const f = (doc && doc[_fk[7]]) || {};
+  for (const [k, v] of Object.entries(f)) out[k] = fromStoreVal(v);
+  return out;
+}
+
+const EncryptedLocalDB = {
+  async readQuiz(id) {
+    const url = _base() + '/' + _dec(_vQ, 19) + '/' + encodeURIComponent(id);
+    const r = await _req(url);
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const doc = await r.json();
+    return doc && doc[_fk[7]] ? fromStoreDoc(doc) : null;
+  },
+  async writeQuiz(id, payload) {
+    const url = _base() + '/' + _dec(_vQ, 19) + '/' + encodeURIComponent(id);
+    const r = await _req(url, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [_fk[7]]: toStoreFields(payload) })
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      throw new Error((err.error && err.error.message) || ('HTTP ' + r.status));
+    }
+    return true;
+  },
+  async patchFields(id, obj) {
+    const keys = Object.keys(obj || {});
+    const mask = keys.map(k => _dec(_vU, 67) + encodeURIComponent(k)).join('&');
+    const url = _base() + '/' + _dec(_vQ, 19) + '/' + encodeURIComponent(id) + '?' + mask;
+    const r = await _req(url, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [_fk[7]]: toStoreFields(obj) })
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      throw new Error((err.error && err.error.message) || ('HTTP ' + r.status));
+    }
+    return true;
+  },
+  patchField(id, fieldName, val) {
+    return this.patchFields(id, { [fieldName]: val });
+  },
+  async listQuizzes() {
+    const url = _base() + _dec(_vR, 79);
+    const qBody = {
+      [_mk[0]]: {
+        [_mk[1]]: [{ [_mk[2]]: _dec(_vQ, 19) }],
+        [_mk[3]]: { [_mk[4]]: [{ [_mk[5]]: _mk[7] }, { [_mk[5]]: _mk[8] }, { [_mk[5]]: _mk[9] }] }
+      }
+    };
+    const r = await _req(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(qBody)
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      throw new Error((err.error && err.error.message) || ('HTTP ' + r.status));
+    }
+    const rows = await r.json();
+    const tplId = _dec(_vT, 87);
+    const out = [];
+    (rows || []).forEach(item => {
+      const doc = item[_mk[6]];
+      if (!doc || !doc.name) return;
+      const id = doc.name.split('/').pop();
+      if (id === tplId) return;
+      const data = fromStoreDoc(doc);
+      out.push({ id, label: data[_mk[7]] || '', quizOrder: Number(data[_mk[8]]) || 0, title: data[_mk[9]] || '' });
+    });
+    return out;
+  },
+  async listRecords(id, signal) {
+    const url = _base() + '/' + _dec(_vQ, 19) + '/' + encodeURIComponent(id) + '/' + _dec(_vS, 41) + _dec(_vL, 53);
+    const r = await _req(url, signal ? { signal } : undefined);
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      throw new Error((err.error && err.error.message) || ('HTTP ' + r.status));
+    }
+    const data = await r.json();
+    return (data.documents || []).map(d => ({ ...fromStoreDoc(d), _path: d.name }));
+  },
+  async purgeRecords(id) {
+    const docs = await this.listRecords(id);
+    if (!docs.length) return;
+    const url = _base() + _dec(_vC, 113);
+    for (let i = 0; i < docs.length; i += 500) {
+      const writes = docs.slice(i, i + 500).map(d => ({ delete: d._path }));
+      const r = await _req(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ writes })
+      });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error((err.error && err.error.message) || ('HTTP ' + r.status));
+      }
+    }
+  }
+};
+
+const $ = id => document.getElementById(id);
+const initialUrlQuiz = new URLSearchParams(window.location.search).get('quiz');
+const defaultSettings = () => ({
+  randomizeQuestions: true,
+  randomizeAnswers: true,
+  enableTabViolation: true,
+  tabViolationPenalty: 1,
+  enableTimer: true,
+  timePerQuestion: 20,
+  autoRecordQuiz: false
+});
+let quizId = initialUrlQuiz || 'active';
+let currentQuizLabel = quizId === 'active' ? 'Quiz 1' : (quizId === 'quiz_2' ? 'Quiz 2' : quizId);
+let currentQuizOrder = quizId === 'active' ? 1 : (quizId === 'quiz_2' ? 2 : 0);
+let quizCatalog = [];
+let quizLoadSeq = 0;
+let renameTarget = null;
+let settingsState = defaultSettings();
+
+const subNoticeHtml = '<p style="text-align:center;padding:24px;color:var(--mu);margin:0">Notice: This is only available to auto record quiz</p>';
+let subPollId = null;
+let subAbort = null;
+
+function stopSubPoller() {
+  if (subPollId !== null) {
+    clearInterval(subPollId);
+    subPollId = null;
+  }
+  if (subAbort) {
+    subAbort.abort();
+    subAbort = null;
+  }
+}
+
+function syncSubPoller() {
+  const canPoll = Boolean(settingsState.autoRecordQuiz) && !document.hidden && !$('view-sub').classList.contains('hide');
+  if (canPoll) {
+    if (subPollId === null) {
+      subPollId = setInterval(() => {
+        if (settingsState.autoRecordQuiz && !document.hidden && !$('view-sub').classList.contains('hide')) {
+          refreshSubmissions();
+        }
+      }, 4000);
+    }
+  } else {
+    stopSubPoller();
+  }
+}
+
+function syncSubViewState() {
+  const on = Boolean(settingsState.autoRecordQuiz);
+  $('sub-count-badge').classList.toggle('hide', !on);
+  $('sub-desc').classList.toggle('hide', !on);
+  if (!on) {
+    stopSubPoller();
+    $('sub-count-badge').textContent = '0 Done';
+    if ($('sub-feed').innerHTML !== subNoticeHtml) $('sub-feed').innerHTML = subNoticeHtml;
+  } else {
+    if ($('sub-feed').innerHTML === subNoticeHtml) {
+      $('sub-feed').innerHTML = '<p style="text-align:center;padding:24px;color:var(--mu);margin:0">Loading submissions...</p>';
+    }
+    syncSubPoller();
+  }
+}
+
+function syncOptionsUI() {
+  $('btn-rand-q').textContent = settingsState.randomizeQuestions ? 'ON' : 'OFF';
+  $('btn-rand-q').style.background = settingsState.randomizeQuestions ? 'var(--ok)' : 'transparent';
+  $('btn-rand-q').style.color = settingsState.randomizeQuestions ? '#fff' : 'var(--tx)';
+
+  $('btn-rand-a').textContent = settingsState.randomizeAnswers ? 'ON' : 'OFF';
+  $('btn-rand-a').style.background = settingsState.randomizeAnswers ? 'var(--ok)' : 'transparent';
+  $('btn-rand-a').style.color = settingsState.randomizeAnswers ? '#fff' : 'var(--tx)';
+
+  $('btn-tab-v').textContent = settingsState.enableTabViolation ? 'ON' : 'OFF';
+  $('btn-tab-v').style.background = settingsState.enableTabViolation ? 'var(--ok)' : 'transparent';
+  $('btn-tab-v').style.color = settingsState.enableTabViolation ? '#fff' : 'var(--tx)';
+  $('pen-box').style.display = settingsState.enableTabViolation ? 'block' : 'none';
+  $('pen-val').value = settingsState.tabViolationPenalty != null ? settingsState.tabViolationPenalty : 1;
+
+  $('btn-timer').textContent = settingsState.enableTimer ? 'ON' : 'OFF';
+  $('btn-timer').style.background = settingsState.enableTimer ? 'var(--ok)' : 'transparent';
+  $('btn-timer').style.color = settingsState.enableTimer ? '#fff' : 'var(--tx)';
+  $('time-box').style.display = settingsState.enableTimer ? 'block' : 'none';
+  $('time-val').value = settingsState.timePerQuestion || 20;
+
+  $('btn-auto-rec').textContent = settingsState.autoRecordQuiz ? 'ON' : 'OFF';
+  $('btn-auto-rec').style.background = settingsState.autoRecordQuiz ? 'var(--ok)' : 'transparent';
+  $('btn-auto-rec').style.color = settingsState.autoRecordQuiz ? '#fff' : 'var(--tx)';
+  syncSubViewState();
+}
+
+let currentLockEpoch = 0;
+
+function defaultLabelFor(id) {
+  if (id === 'active') return 'Quiz 1';
+  if (id === 'quiz_2') return 'Quiz 2';
+  const m = /^quiz_(\d+)$/.exec(id);
+  return m ? 'Quiz ' + m[1] : id;
+}
+
+function defaultOrderFor(id) {
+  if (id === 'active') return 1;
+  if (id === 'quiz_2') return 2;
+  const m = /^quiz_(\d+)$/.exec(id);
+  return m ? Number(m[1]) : 999;
+}
+
+function mergeQuizCatalog(remote) {
+  const map = new Map();
+  map.set('active', { id: 'active', label: 'Quiz 1', quizOrder: 1, title: '' });
+  map.set('quiz_2', { id: 'quiz_2', label: 'Quiz 2', quizOrder: 2, title: '' });
+  (remote || []).forEach(r => {
+    if (!r || !r.id) return;
+    const prev = map.get(r.id) || {};
+    map.set(r.id, {
+      id: r.id,
+      label: r.label || prev.label || defaultLabelFor(r.id),
+      quizOrder: r.quizOrder || prev.quizOrder || defaultOrderFor(r.id),
+      title: r.title || prev.title || ''
+    });
+  });
+  return Array.from(map.values()).sort((a, b) => (a.quizOrder - b.quizOrder) || a.id.localeCompare(b.id));
+}
+
+function renderDashboard() {
+  const box = $('dash-list');
+  box.innerHTML = '';
+  quizCatalog.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'dash-row';
+    const loadBtn = document.createElement('button');
+    loadBtn.type = 'button';
+    loadBtn.className = 'dash-load';
+    loadBtn.textContent = 'Load ' + item.label;
+    loadBtn.onclick = () => loadQuizById(item.id, item.label, item.quizOrder);
+    const renBtn = document.createElement('button');
+    renBtn.type = 'button';
+    renBtn.className = 'sec dash-ren';
+    renBtn.textContent = 'Rename';
+    renBtn.onclick = () => openRenameModal(item);
+    row.append(loadBtn, renBtn);
+    box.appendChild(row);
+  });
+}
+
+async function refreshDashboard() {
+  try {
+    const remote = await EncryptedLocalDB.listQuizzes();
+    quizCatalog = mergeQuizCatalog(remote);
+    renderDashboard();
+  } catch (e) { }
+}
+
+const tabs = [
+  ['tab-btn-editor', 'view-editor'],
+  ['tab-btn-sub', 'view-sub']
+];
+function switchTab(activeBtnId) {
+  tabs.forEach(([b, v]) => {
+    const on = b === activeBtnId;
+    $(b).classList.toggle('active', on);
+    $(v).classList.toggle('hide', !on);
+  });
+  if (activeBtnId !== 'tab-btn-sub') $('sub-status-msg').classList.add('hide');
+  syncSubPoller();
+  if (activeBtnId === 'tab-btn-sub') refreshSubmissions();
+}
+tabs.forEach(([b]) => {
+  $(b).onclick = () => switchTab(b);
+});
+
+function showDashboard(syncUrl = true) {
+  quizLoadSeq++;
+  closeEdge();
+  stopSubPoller();
+  $('ws-bar').classList.add('hide');
+  $('main-nav').classList.add('hide');
+  $('opt-btn').classList.add('hide');
+  $('view-editor').classList.add('hide');
+  $('view-sub').classList.add('hide');
+  $('sub-status-msg').classList.add('hide');
+  $('dash-msg').classList.add('hide');
+  $('view-dash').classList.remove('hide');
+  if (syncUrl !== false) {
+    try {
+      if (history.replaceState) history.replaceState({ dash: true }, '', location.pathname);
+    } catch (e) { }
+  }
+  if (!quizCatalog.length) quizCatalog = mergeQuizCatalog([]);
+  renderDashboard();
+  refreshDashboard();
+}
+$('tab-btn-dash').onclick = () => showDashboard(true);
+$('back-dash-btn').onclick = () => showDashboard(true);
+
+function openRenameModal(item) {
+  renameTarget = item;
+  $('rename-input').value = item.label;
+  $('rename-modal').classList.remove('hide');
+  if ($('rename-input').focus) $('rename-input').focus();
+}
+
+$('rename-cancel-btn').onclick = () => {
+  renameTarget = null;
+  $('rename-modal').classList.add('hide');
+};
+
+$('rename-save-btn').onclick = async () => {
+  const item = renameTarget;
+  if (!item) return;
+  const newLabel = $('rename-input').value.trim();
+  if (!newLabel) {
+    if ($('rename-input').focus) $('rename-input').focus();
+    return;
+  }
+  renameTarget = null;
+  $('rename-modal').classList.add('hide');
+  $('dash-msg').classList.remove('hide');
+  $('dash-msg').textContent = 'Renaming...';
+  $('dash-msg').style.color = 'var(--mu)';
+  try {
+    await EncryptedLocalDB.patchFields(item.id, { label: newLabel, quizOrder: item.quizOrder });
+    item.label = newLabel;
+    if (item.id === quizId) {
+      currentQuizLabel = newLabel;
+      $('active-quiz-badge').textContent = newLabel;
+    }
+    renderDashboard();
+    $('dash-msg').textContent = 'Renamed to ' + newLabel + '.';
+    $('dash-msg').style.color = 'var(--ok)';
+  } catch (err) {
+    $('dash-msg').textContent = 'Error renaming: ' + err.message;
+    $('dash-msg').style.color = 'var(--bad)';
+  }
+};
+
+$('add-quiz-btn').onclick = async () => {
+  $('add-quiz-btn').disabled = true;
+  $('dash-msg').classList.remove('hide');
+  $('dash-msg').textContent = 'Adding quiz...';
+  $('dash-msg').style.color = 'var(--mu)';
+  let nextOrd = quizCatalog.reduce((m, q) => Math.max(m, q.quizOrder || 0), 2) + 1;
+  while (quizCatalog.some(q => q.id === 'quiz_' + nextOrd)) nextOrd++;
+  const newId = 'quiz_' + nextOrd;
+  const newLabel = 'Quiz ' + nextOrd;
+  const stub = {
+    label: newLabel,
+    quizOrder: nextOrd,
+    title: '',
+    description: '',
+    settings: defaultSettings(),
+    questions: [],
+    lockEpoch: 0,
+    updatedAt: Date.now()
+  };
+  try {
+    await EncryptedLocalDB.writeQuiz(newId, stub);
+    quizCatalog = mergeQuizCatalog([...quizCatalog, { id: newId, label: newLabel, quizOrder: nextOrd, title: '' }]);
+    renderDashboard();
+    $('dash-msg').textContent = 'Added ' + newLabel + '.';
+    $('dash-msg').style.color = 'var(--ok)';
+  } catch (err) {
+    $('dash-msg').textContent = 'Error adding quiz: ' + err.message;
+    $('dash-msg').style.color = 'var(--bad)';
+  } finally {
+    $('add-quiz-btn').disabled = false;
+  }
+};
+
+$('clear-sub-btn').onclick = () => {
+  $('confirm-modal').classList.remove('hide');
+};
+$('modal-no-btn').onclick = () => {
+  $('confirm-modal').classList.add('hide');
+};
+$('modal-yes-btn').onclick = async () => {
+  $('confirm-modal').classList.add('hide');
+  $('sub-status-msg').classList.remove('hide');
+  $('sub-status-msg').textContent = 'Clearing & resetting locks...';
+  $('sub-status-msg').style.color = 'var(--mu)';
+  const nextEpoch = Date.now();
+  try {
+    await Promise.all([
+      EncryptedLocalDB.purgeRecords(quizId),
+      EncryptedLocalDB.patchField(quizId, 'lockEpoch', nextEpoch)
+    ]);
+    currentLockEpoch = nextEpoch;
+    try { localStorage.removeItem('ds_quiz_lock_' + quizId); } catch (e) {}
+    $('sub-status-msg').textContent = 'Cleared students and reset response lock!';
+    $('sub-status-msg').style.color = 'var(--ok)';
+    await refreshSubmissions();
+  } catch (err) {
+    $('sub-status-msg').textContent = 'Error clearing records: ' + err.message;
+    $('sub-status-msg').style.color = 'var(--bad)';
+    if (String(err.message || err).toLowerCase().includes('permission')) {
+      alert('Vault write permission blocked by remote storage policy.');
+    } else {
+      alert('Error clearing records: ' + err.message);
+    }
+  }
+};
+
+$('opt-btn').onclick = () => {
+  $('options-panel').classList.add('open');
+  $('edge-overlay').classList.add('open');
+};
+const closeEdge = () => {
+  $('options-panel').classList.remove('open');
+  $('edge-overlay').classList.remove('open');
+};
+$('close-opt-btn').onclick = closeEdge;
+$('edge-overlay').onclick = closeEdge;
+
+$('btn-rand-q').onclick = () => {
+  settingsState.randomizeQuestions = !settingsState.randomizeQuestions;
+  syncOptionsUI();
+};
+$('btn-rand-a').onclick = () => {
+  settingsState.randomizeAnswers = !settingsState.randomizeAnswers;
+  syncOptionsUI();
+};
+$('btn-tab-v').onclick = () => {
+  settingsState.enableTabViolation = !settingsState.enableTabViolation;
+  syncOptionsUI();
+};
+$('btn-timer').onclick = () => {
+  settingsState.enableTimer = !settingsState.enableTimer;
+  syncOptionsUI();
+};
+$('btn-auto-rec').onclick = () => {
+  settingsState.autoRecordQuiz = !settingsState.autoRecordQuiz;
+  syncOptionsUI();
+  if (settingsState.autoRecordQuiz && !$('view-sub').classList.contains('hide')) refreshSubmissions();
+};
+
+function createQuestionCard(data = {}, num = 1) {
+  const card = document.createElement('div');
+  card.className = 'card q-card';
+
+  const top = document.createElement('div');
+  top.className = 'top';
+  const title = document.createElement('b');
+  title.className = 'q-num-label';
+  title.textContent = 'Question ' + num;
+
+  const delBtn = document.createElement('button');
+  delBtn.type = 'button';
+  delBtn.className = 'danger';
+  delBtn.style.padding = '4px 10px';
+  delBtn.style.fontSize = '0.85rem';
+  delBtn.textContent = 'Remove';
+  delBtn.onclick = () => {
+    card.remove();
+    renumberCards();
+  };
+  top.append(title, delBtn);
+
+  const qLabel = document.createElement('label');
+  qLabel.textContent = 'Question Prompt';
+  const qInput = document.createElement('textarea');
+  qInput.className = 'q-text';
+  qInput.rows = 2;
+  qInput.placeholder = 'Tap and type question...';
+  qInput.value = data.q || '';
+  qLabel.appendChild(qInput);
+
+  const cLabel = document.createElement('label');
+  cLabel.style.color = 'var(--ok)';
+  cLabel.textContent = 'Correct Answer';
+  const cInput = document.createElement('input');
+  cInput.className = 'correct-box q-corr';
+  cInput.placeholder = 'Tap and type correct answer...';
+  cInput.value = data.correct || '';
+  cLabel.appendChild(cInput);
+
+  const wrongs = data.wrongs || ['', '', ''];
+  const w1Label = document.createElement('label');
+  w1Label.style.color = 'var(--mu)';
+  w1Label.textContent = 'Wrong Answer 1';
+  const w1Input = document.createElement('input');
+  w1Input.className = 'wrong-box q-w1';
+  w1Input.placeholder = 'Tap and type wrong answer 1...';
+  w1Input.value = wrongs[0] || '';
+  w1Label.appendChild(w1Input);
+
+  const w2Label = document.createElement('label');
+  w2Label.style.color = 'var(--mu)';
+  w2Label.textContent = 'Wrong Answer 2';
+  const w2Input = document.createElement('input');
+  w2Input.className = 'wrong-box q-w2';
+  w2Input.placeholder = 'Tap and type wrong answer 2...';
+  w2Input.value = wrongs[1] || '';
+  w2Label.appendChild(w2Input);
+
+  const w3Label = document.createElement('label');
+  w3Label.style.color = 'var(--mu)';
+  w3Label.textContent = 'Wrong Answer 3';
+  const w3Input = document.createElement('input');
+  w3Input.className = 'wrong-box q-w3';
+  w3Input.placeholder = 'Tap and type wrong answer 3...';
+  w3Input.value = wrongs[2] || '';
+  w3Label.appendChild(w3Input);
+
+  const expLabel = document.createElement('label');
+  expLabel.style.color = 'var(--mu)';
+  expLabel.textContent = 'Explanation (Optional)';
+  const expInput = document.createElement('input');
+  expInput.className = 'q-exp';
+  expInput.placeholder = 'Tap and type explanation shown in feedback...';
+  expInput.value = data.explanation || '';
+  expLabel.appendChild(expInput);
+
+  card.append(top, qLabel, cLabel, w1Label, w2Label, w3Label, expLabel);
+  return card;
+}
+
+function renumberCards() {
+  const cards = $('questions-container').querySelectorAll('.q-card');
+  cards.forEach((c, idx) => {
+    const lbl = c.querySelector('.q-num-label');
+    if (lbl) lbl.textContent = 'Question ' + (idx + 1);
+  });
+}
+
+$('add-q-btn').onclick = () => {
+  const container = $('questions-container');
+  const count = container.querySelectorAll('.q-card').length + 1;
+  const newCard = createQuestionCard({}, count);
+  container.appendChild(newCard);
+  newCard.scrollIntoView({ behavior: 'smooth' });
+};
+
+function populateQuizData(quiz) {
+  if (quiz.label) currentQuizLabel = quiz.label;
+  if (quiz.quizOrder != null) currentQuizOrder = Number(quiz.quizOrder) || currentQuizOrder;
+  $('active-quiz-badge').textContent = currentQuizLabel;
+  $('qtitle').value = quiz.title || '';
+  $('qdesc').value = quiz.description || '';
+  currentLockEpoch = quiz.lockEpoch != null ? (Number(quiz.lockEpoch) || 0) : 0;
+  settingsState = { ...defaultSettings(), ...(quiz.settings || {}) };
+  syncOptionsUI();
+  const container = $('questions-container');
+  container.innerHTML = '';
+  (quiz.questions || []).forEach((q, idx) => {
+    container.appendChild(createQuestionCard(q, idx + 1));
+  });
+  if ((quiz.questions || []).length === 0) {
+    container.appendChild(createQuestionCard({}, 1));
+  }
+}
+
+function loadTeacherQuiz(targetId) {
+  const seq = ++quizLoadSeq;
+  populateQuizData({ questions: [] });
+  $('status-msg').textContent = 'Loading ' + currentQuizLabel + '...';
+  $('status-msg').style.color = 'var(--mu)';
+  EncryptedLocalDB.readQuiz(targetId).then(data => {
+    if (seq !== quizLoadSeq) return;
+    if (data) {
+      populateQuizData(data);
+      $('status-msg').textContent = 'Loaded ' + currentQuizLabel + '.';
+      $('status-msg').style.color = 'var(--ok)';
+      if (settingsState.autoRecordQuiz && !$('view-sub').classList.contains('hide')) refreshSubmissions();
+    } else {
+      $('status-msg').textContent = currentQuizLabel + ' is empty. Add questions and click Save to Quiz.';
+      $('status-msg').style.color = 'var(--mu)';
+    }
+  }).catch(() => {
+    if (seq !== quizLoadSeq) return;
+    $('status-msg').textContent = 'Ready (' + currentQuizLabel + ').';
+    $('status-msg').style.color = 'var(--mu)';
+  });
+}
+
+function loadQuizById(id, label, order, pushHist = true) {
+  quizId = id || 'active';
+  currentQuizLabel = label || defaultLabelFor(quizId);
+  currentQuizOrder = order || defaultOrderFor(quizId);
+  try {
+    const st = { quizId, label: currentQuizLabel, quizOrder: currentQuizOrder };
+    const u = location.pathname + '?quiz=' + encodeURIComponent(quizId);
+    if (pushHist !== false && history.pushState && (!history.state || history.state.quizId !== quizId)) {
+      history.pushState(st, '', u);
+    } else if (history.replaceState) {
+      history.replaceState(st, '', u);
+    }
+  } catch (e) { }
+  $('view-dash').classList.add('hide');
+  $('ws-bar').classList.remove('hide');
+  $('main-nav').classList.remove('hide');
+  $('opt-btn').classList.remove('hide');
+  $('sub-status-msg').classList.add('hide');
+  switchTab('tab-btn-editor');
+  loadTeacherQuiz(quizId);
+}
+
+function buildQuizPayload() {
+  const title = $('qtitle').value.trim();
+  const desc = $('qdesc').value.trim();
+  settingsState.tabViolationPenalty = parseInt($('pen-val').value, 10) || 0;
+  settingsState.timePerQuestion = parseInt($('time-val').value, 10) || 20;
+  const cards = $('questions-container').querySelectorAll('.q-card');
+  const questions = [];
+  cards.forEach(c => {
+    const q = c.querySelector('.q-text').value.trim();
+    const correct = c.querySelector('.q-corr').value.trim();
+    const w1 = c.querySelector('.q-w1').value.trim();
+    const w2 = c.querySelector('.q-w2').value.trim();
+    const w3 = c.querySelector('.q-w3').value.trim();
+    const exp = c.querySelector('.q-exp').value.trim();
+    if (q || correct) {
+      questions.push({
+        q,
+        correct,
+        wrongs: [w1, w2, w3].filter(Boolean),
+        explanation: exp
+      });
+    }
+  });
+  return {
+    label: currentQuizLabel,
+    quizOrder: currentQuizOrder,
+    title,
+    description: desc,
+    settings: { ...settingsState },
+    questions,
+    lockEpoch: currentLockEpoch,
+    updatedAt: Date.now()
+  };
+}
+
+$('save-btn').onclick = () => {
+  const payload = buildQuizPayload();
+  if (!payload.title) {
+    $('status-msg').textContent = 'Please enter a quiz title.';
+    $('status-msg').style.color = 'var(--bad)';
+    return;
+  }
+  if (payload.questions.length === 0) {
+    $('status-msg').textContent = 'Please add at least one question.';
+    $('status-msg').style.color = 'var(--bad)';
+    return;
+  }
+
+  $('status-msg').textContent = 'Saving...';
+  $('status-msg').style.color = 'var(--mu)';
+  EncryptedLocalDB.writeQuiz(quizId, payload).then(() => {
+    quizCatalog = mergeQuizCatalog([...quizCatalog, { id: quizId, label: currentQuizLabel, quizOrder: currentQuizOrder, title: payload.title }]);
+    $('status-msg').textContent = 'Saved Successfully to ' + currentQuizLabel + '! Quiz is live.';
+    $('status-msg').style.color = 'var(--ok)';
+  }).catch(err => {
+    $('status-msg').textContent = 'Error saving: ' + err.message;
+    $('status-msg').style.color = 'var(--bad)';
+  });
+};
+
+let cachedTemplateHtml = null;
+function preloadTemplate() {
+  EncryptedLocalDB.readQuiz(_dec(_vT, 87)).then(doc => {
+    if (doc && doc.html) cachedTemplateHtml = doc.html;
+  }).catch(() => {});
+  _req('index.html').then(r => r.text()).then(t => {
+    if (!cachedTemplateHtml) cachedTemplateHtml = t;
+  }).catch(() => {});
+}
+preloadTemplate();
+
+function sanitizeFilename(raw) {
+  let s = String(raw || '').replace(/[\x00-\x1f\x7f-\x9f]/g, '_').replace(/[<>:"/\\|?*]/g, '_').replace(/^[. ]+|[. ]+$/g, '').trim();
+  if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i.test(s)) s = '_' + s;
+  s = s.slice(0, 120).replace(/^[. ]+|[. ]+$/g, '');
+  return (s || 'Quiz') + '.html';
+}
+
+function injectVault(tplHtml) {
+  const payload = buildQuizPayload();
+  if (!payload.questions.length && !payload.title) return tplHtml;
+  const token = sealPayload({ ...payload, quizId });
+  return tplHtml.replace(/(<script\s+id=["']local-db-vault["'][^>]*>)[\s\S]*?(<\/script>)/i, '$1' + token + '$2');
+}
+
+function triggerDownload(html, fileName) {
+  const blob = new Blob([html], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    if (a.parentNode) a.parentNode.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 1000);
+  return url;
+}
+
+function finalizeDownload(rawHtml) {
+  const finalHtml = injectVault(rawHtml);
+  const fileName = sanitizeFilename(currentQuizLabel || $('qtitle').value.trim() || quizId);
+  const directUrl = triggerDownload(finalHtml, fileName);
+  const safeName = escapeSubHtml(fileName);
+  $('status-msg').innerHTML = 'Downloaded ' + safeName + ' successfully! If download did not start, <a href="' + directUrl + '" download="' + safeName + '" style="color:var(--pr);text-decoration:underline">click here</a>.';
+  $('status-msg').style.color = 'var(--ok)';
+}
+
+$('dl-quiz-btn').onclick = () => {
+  if (cachedTemplateHtml) {
+    finalizeDownload(cachedTemplateHtml);
+    return;
+  }
+  $('status-msg').textContent = 'Preparing student quiz file...';
+  $('status-msg').style.color = 'var(--mu)';
+  const fetchLocal = () => _req('index.html').then(r => r.text());
+  const fetchRemote = EncryptedLocalDB.readQuiz(_dec(_vT, 87)).then(doc => (doc && doc.html) ? doc.html : null).catch(() => null);
+  fetchRemote.then(html => html || fetchLocal()).then(html => {
+    if (html) {
+      cachedTemplateHtml = html;
+      finalizeDownload(html);
+    } else {
+      $('status-msg').textContent = 'Could not load quiz template.';
+      $('status-msg').style.color = 'var(--bad)';
+    }
+  }).catch(() => {
+    $('status-msg').textContent = 'Could not load quiz template.';
+    $('status-msg').style.color = 'var(--bad)';
+  });
+};
+
+function escapeSubHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+async function refreshSubmissions() {
+  if (!settingsState.autoRecordQuiz) {
+    syncSubViewState();
+    return;
+  }
+  if (subAbort) subAbort.abort();
+  subAbort = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const sig = subAbort ? subAbort.signal : undefined;
+  try {
+    const docs = await EncryptedLocalDB.listRecords(quizId, sig);
+    if (!settingsState.autoRecordQuiz) {
+      syncSubViewState();
+      return;
+    }
+    docs.sort((a, b) => (Number(b.submittedAt) || Number(b.ts) || 0) - (Number(a.submittedAt) || Number(a.ts) || 0));
+    $('sub-count-badge').textContent = docs.length + ' Done';
+    const feed = $('sub-feed');
+    if (!docs.length) {
+      feed.innerHTML = '<p style="text-align:center;padding:24px;color:var(--mu);margin:0">No records saved yet.</p>';
+      return;
+    }
+    let html = '';
+    docs.forEach(d => {
+      const name = d.studentName || d.n || 'Anonymous';
+      const course = d.courseSection || d.s || '';
+      const score = d.scoreText || ((d.sc != null ? d.sc : (d.finalScore != null ? d.finalScore : 0)) + ' / ' + (d.tot || d.totalQuestions || 20));
+      const viol = d.violationsText || ((d.sw != null ? d.sw : (d.violations || 0)) + ' (-' + (d.pen || 0) + ' pts)');
+      const time = d.timeSpent || ((d.t != null ? d.t : (d.durationSeconds || 0)) + ' seconds');
+      const date = d.submittedAtText || (d.submittedAt ? new Date(d.submittedAt).toLocaleString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' }) : '');
+      html += '<div class="sub-card"><div><b style="font-size:1.05rem">' + escapeSubHtml(name) + '</b>' + (course ? ' <span class="badge">' + escapeSubHtml(course) + '</span>' : '') + '<div class="sub-meta">Violations: ' + escapeSubHtml(viol) + ' • Time: ' + escapeSubHtml(time) + (date ? ' • ' + escapeSubHtml(date) : '') + '</div></div><div class="sub-score">' + escapeSubHtml(score) + '</div></div>';
+    });
+    feed.innerHTML = html;
+  } catch (err) {
+    if (err && err.name === 'AbortError') return;
+    if (!settingsState.autoRecordQuiz) return;
+    $('sub-feed').innerHTML = '<p style="color:var(--bad);padding:14px;margin:0">Failed to load records: ' + err.message + '</p>';
+  }
+}
+
+document.addEventListener('visibilitychange', syncSubPoller);
+window.addEventListener('popstate', e => {
+  const st = e && e.state;
+  const qParam = new URLSearchParams(window.location.search).get('quiz');
+  const targetId = (st && st.quizId) || qParam;
+  if (targetId && (!st || !st.dash)) {
+    loadQuizById(targetId, st && st.label, st && st.quizOrder, false);
+  } else {
+    showDashboard(false);
+  }
+});
+syncSubViewState();
+if (initialUrlQuiz) {
+  loadQuizById(initialUrlQuiz, null, null, false);
+} else {
+  showDashboard(true);
+}
+</script>
+</body>
+</html>

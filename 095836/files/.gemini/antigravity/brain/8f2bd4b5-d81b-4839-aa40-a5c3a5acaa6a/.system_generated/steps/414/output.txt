@@ -1,0 +1,7 @@
+Command exited with code 0.
+
+Command output:
+Comment found in index.html line 1 : <!--
+Comment found in index.html line 53 :     * {
+Comment found in teacher.html line 10 : *{box-sizing:border-box}
+Comment scan complete.

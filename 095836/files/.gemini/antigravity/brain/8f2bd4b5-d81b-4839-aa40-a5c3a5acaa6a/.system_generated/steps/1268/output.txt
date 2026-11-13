@@ -1,0 +1,8 @@
+Created At: 2026-11-11T05:49:25+08:00
+Completed At: 2026-11-11T05:49:29+08:00
+Command exited with code 0.
+
+Command output:
+Current Firestore quizzes docs:
+- active | title: C Programming: Switch Case Quizasdasdsss | label: undefined | qCount: 1
+- template | title: undefined | label: undefined | qCount: 0

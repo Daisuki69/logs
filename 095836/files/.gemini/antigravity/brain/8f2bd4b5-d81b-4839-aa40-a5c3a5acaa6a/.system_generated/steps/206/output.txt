@@ -1,0 +1,7 @@
+Command exited with code 0.
+
+Command output:
+
+teacher.html:364:        $('status-msg').textContent = 'Loaded active quiz from Firebase.';
+
+

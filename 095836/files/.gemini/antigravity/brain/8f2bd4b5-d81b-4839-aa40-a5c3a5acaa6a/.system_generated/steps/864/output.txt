@@ -1,0 +1,38 @@
+Created At: 2026-11-11T04:46:34+08:00
+Completed At: 2026-11-11T04:46:37+08:00
+Command exited with code 0.
+
+Command output:
+=== index.html ===
+321: <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+322: <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+326: authDomain: "sir-jasper-quiz.firebaseapp.com",
+327: projectId: "sir-jasper-quiz",
+328: storageBucket: "sir-jasper-quiz.firebasestorage.app",
+335: firebase.initializeApp(cfg);
+336: db = firebase.firestore();
+380: db.collection("quizzes").doc(quizId).get().then(doc => {
+575: db.collection("quizzes").doc(quizId).collection("submissions").add(subData);
+=== teacher.html ===
+109: <div style="font-size:0.85rem;color:var(--mu)">Record submissions instead of downloading file or base64 conversion</div>
+119: <button id="tab-btn-sub" class="tab-item" type="button">Submissions</button>
+160: <p style="text-align:center;padding:24px;color:var(--mu);margin:0">Loading submissions...</p>
+177: <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+178: <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+182: authDomain: "sir-jasper-quiz.firebaseapp.com",
+183: projectId: "sir-jasper-quiz",
+184: storageBucket: "sir-jasper-quiz.firebasestorage.app",
+191: firebase.initializeApp(cfg);
+192: db = firebase.firestore();
+257: const snap = await db.collection("quizzes").doc(quizId).collection("submissions").get();
+263: alert('Firestore security rules currently block deleting submissions. Please update your rules to allow delete on /quizzes/{quizId}/submissions/{subId}.');
+265: alert('Error clearing submissions: ' + err.message);
+419: db.collection("quizzes").doc(quizId).get().then(doc => {
+469: db.collection("quizzes").doc(quizId).set({
+491: db.collection("quizzes").doc("template").get().then(snap => {
+530: const fetchRemote = db ? db.collection("quizzes").doc("template").get().then(s => s.exists && s.data().html ? s.data().html : null) : Promise.resolve(null);
+552: function initSubmissionsFeed() {
+554: db.collection("quizzes").doc(quizId).collection("submissions").orderBy("submittedAt", "desc").onSnapshot(snap => {
+558: feed.innerHTML = '<p style="text-align:center;padding:24px;color:var(--mu);margin:0">No submissions recorded yet.</p>';
+574: $('sub-feed').innerHTML = '<p style="color:var(--bad);padding:14px;margin:0">Failed to load submissions: ' + err.message + '</p>';
+577: initSubmissionsFeed();

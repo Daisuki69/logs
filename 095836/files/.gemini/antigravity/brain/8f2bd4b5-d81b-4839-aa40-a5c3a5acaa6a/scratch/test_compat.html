@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head><title>Test Compat</title></head>
+<body>
+<div id="status">Testing compat...</div>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+<script>
+  try {
+    const firebaseConfig = {
+      apiKey: "AIzaSyBkqJ9WvtXfGJt19XK7SLK9v5cJwp4EVII",
+      authDomain: "sir-jasper-quiz.firebaseapp.com",
+      projectId: "sir-jasper-quiz",
+      storageBucket: "sir-jasper-quiz.firebasestorage.app",
+      messagingSenderId: "932129654171",
+      appId: "1:932129654171:web:793aa17dd1f130a62f4d3e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    db.collection("quizzes").doc("active").get().then(doc => {
+      if (doc.exists) {
+        document.getElementById("status").textContent = "COMPAT SUCCESS: " + doc.data().title;
+        console.log("SUCCESS:", doc.data().title);
+      } else {
+        document.getElementById("status").textContent = "COMPAT NOT FOUND";
+      }
+    }).catch(err => {
+      document.getElementById("status").textContent = "COMPAT ERROR: " + err.message;
+      console.error(err);
+    });
+  } catch (e) {
+    document.getElementById("status").textContent = "CATCH ERROR: " + e.message;
+  }
+</script>
+</body>
+</html>

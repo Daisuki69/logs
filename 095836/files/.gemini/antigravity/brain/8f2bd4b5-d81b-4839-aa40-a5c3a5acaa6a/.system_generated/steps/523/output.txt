@@ -1,0 +1,16 @@
+Command exited with code 0.
+
+Command output:
+264       <p id="desc">Loading...</p>
+267       <ul id="rules">
+268         <li id="r-timer">Each question has <b>20 seconds</b>. When time runs out, it moves on automatically with no
+270         <li id="r-tab">Every alt-tab or switch to another tab/app costs <b>-1 point</b>.</li>
+369       $('desc').textContent = data.description || "";
+372         $('r-timer').textContent = "There is no time limit for questions.";
+374         $('r-timer').innerHTML = "Each question has <b>" + (st.timePerQuestion || 20) + " seconds</b>. When time runs out, it moves on automatically.";
+377         $('r-tab').style.display = 'none';
+380         $('r-tab').innerHTML = "Every alt-tab or switch to another tab/app costs <b>-" + pen + " point" + (pen === 1 ? "" : "s") + "</b>.";
+388       $('desc').textContent = "Loading quiz questions...";
+395             $('desc').textContent = "Quiz not found. Please contact your instructor.";
+398           $('desc').textContent = "Failed to load quiz. Please check your connection.";
+401         $('desc').textContent = "Database connection error.";

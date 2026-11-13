@@ -1,0 +1,5 @@
+Command exited with code 0.
+
+Command output:
+Firestore write HTTP status: 200
+Firestore write success! Name: projects/sir-jasper-quiz/databases/(default)/documents/quizzes/active

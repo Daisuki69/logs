@@ -1,0 +1,14 @@
+Created At: 2026-11-11T05:31:47+08:00
+Completed At: 2026-11-11T05:31:53+08:00
+Command exited with code 1.
+
+Command output:
+Static audit OK: 4 start rules intact, zero visible mention of screenshot/watermark/blur
+C:\Users\CxAdmin\.gemini\antigravity\brain\8f2bd4b5-d81b-4839-aa40-a5c3a5acaa6a\scratch\obf_tool\verify_stealth_mask.cjs:183
+  env1.els['nm'].value = 'Ana & "Ben"';
+                       ^
+
+TypeError: Cannot set properties of undefined (setting 'value')
+    at C:\Users\CxAdmin\.gemini\antigravity\brain\8f2bd4b5-d81b-4839-aa40-a5c3a5acaa6a\scratch\obf_tool\verify_stealth_mask.cjs:183:24
+
+Node.js v22.22.0

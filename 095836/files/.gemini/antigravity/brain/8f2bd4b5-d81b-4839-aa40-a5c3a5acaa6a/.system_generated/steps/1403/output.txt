@@ -1,0 +1,44 @@
+Created At: 2026-11-11T06:06:28+08:00
+Completed At: 2026-11-11T06:06:31+08:00
+Command exited with code 1.
+
+Command output:
+=== S:\AI Logs\2026-11-10\142354\registry ===
+S:\AI Logs\2026-11-10\142354\registry\Wlansvc_Interfaces.reg
+=== C:\Users\CxAdmin\.gemini\antigravity subdirectories & files ===
+
+=== Check C:\Users\CxAdmin\.gemini\antigravity\implicit / knowledge if any ===
+Name                      Length  LastWriteTime         
+----                      ------  -------------         
+annotations                       11/11/2026 6:04:31 am 
+bin                               10/11/2026 12:31:06 pm
+brain                             09/11/2026 9:43:48 pm 
+builtin                           10/11/2026 12:30:54 pm
+cache                             30/10/2026 7:13:49 pm 
+chapter_titles                    11/11/2026 4:44:47 am 
+conversations                     11/11/2026 6:00:58 am 
+crashes                           10/11/2026 12:33:15 pm
+daemon                            10/11/2026 12:33:15 pm
+log                               10/11/2026 12:33:15 pm
+mcp                               31/10/2026 9:19:34 pm 
+plugin_data                       31/10/2026 9:20:41 pm 
+presence                          09/11/2026 9:43:48 pm 
+scratch                           09/11/2026 5:11:06 pm 
+agyhub_summaries_proto.pb 9376    11/11/2026 6:05:00 am 
+antigravity_state.pbtxt   951     08/11/2026 8:33:01 pm 
+cli.log                   7908    10/11/2026 12:33:19 pm
+conversation_summaries.db 5808128 11/11/2026 6:05:30 am 
+installation_id           36      29/10/2026 9:47:03 pm 
+False
+False
+Test-Path : Access is denied
+At line:6 char:53
++ ... igravity"; Test-Path "S:\.gemini"; Test-Path "S:\Users\Admin\.gemini"
++                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : PermissionDenied: (S:\Users\Admin\.gemini:String) [Test-Path], UnauthorizedAccessExcepti 
+   on
+    + FullyQualifiedErrorId : ItemExistsUnauthorizedAccessError,Microsoft.PowerShell.Commands.TestPathCommand
+ 
+False
+
+

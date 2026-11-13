@@ -1,0 +1,15 @@
+Command exited with code 0.
+
+Command output:
+
+Name                Length LastWriteTime         
+----                ------ -------------         
+scratch                    09/11/2026 6:06:04 am 
+firebase-config.js  1306   09/11/2026 6:02:32 am 
+HISTORY.md          4377   09/11/2026 6:05:10 am 
+index.html          19081  09/11/2026 5:49:26 am 
+QUIZ06 (1) (1).html 16327  08/11/2026 10:18:50 pm
+teacher.html        17165  09/11/2026 6:04:49 am 
+vercel.json         25     09/11/2026 4:56:32 am 
+
+

@@ -1,0 +1,5 @@
+Command exited with code 0.
+
+Command output:
+teacher.html inline script 0 syntax OK
+index.html inline script 0 syntax OK

@@ -1,0 +1,44 @@
+The search for "javascript "from origin 'null' has been blocked by CORS policy" type="module" file://" returned the following summary:
+This error occurs because you are trying to open an HTML file directly in your browser using the local file system (`file://` protocol) while using JavaScript modules (`type="module"`)[1][2]. 
+
+Modern browsers enforce a strict security policy (CORS) that blocks JavaScript modules from loading local files via `file://` because local files have an origin of `"null"`[2][3]. JavaScript modules **must** be loaded via an HTTP server (`http://` or `https://`)[1].
+
+To fix this, you need to run your project through a local development server instead of double-clicking the HTML file[1]. Here are the easiest ways to do it:
+
+### 1. If you use Visual Studio Code (Recommended)
+1. Install the **Live Server** extension by Ritwick Dey from the VS Code Marketplace[1].
+2. Open your project folder in VS Code.
+3. Open your `index.html` file, right-click anywhere in the editor, and select **"Open with Live Server"**[1].
+4. It will automatically open your page in the browser via `http://127.0.0.1:...` and the error will disappear.
+
+### 2. Using Node.js (`npx serve`)
+If you have Node.js installed on your computer, you don't even need to install a package permanently. Open your project folder in your terminal and run[1]:
+```bash
+npx serve
+```
+Then, open the local URL (usually `http://localhost:3000`) provided in the terminal.
+
+### 3. Using Python
+If you have Python installed, open your project folder in your terminal and run:
+* **Python 3:**
+  ```bash
+  python -m http.server
+  ```
+* **Python 2:**
+  ```bash
+  python -m SimpleHTTPServer
+  ```
+Then, open your browser and go to `http://localhost:8000`.
+
+---
+
+### Summary Checklist:
+* **Don't do this:** Double-clicking `index.html` so the address bar starts with `file:///`[1].
+* **Do this:** Run a local server so the address bar starts with `http://localhost:...` or `http://127.0.0.1:...`[1].
+
+Sources:
+[1] [stackoverflow.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHXUOQceL0HWUQny8VxTZ51XySDJgEe-LJgYdi6YT_EttxwY3ue8YHQ7wdDSnVafeb0DYqISzJ5qc1UBTv_Ay_Wuk3Jt50tR4JJO66d04XYVeF_91VRxUddEtoWTOL9IEFXOqrf9dTWbl0gShwKR8ca4ilJo1bYVv9U0MIMpOeo24-c5NEbCB5Wz88ys9v7frGSeZHWGdik4pJt-3UKuTB1MR6RnxH7Ng==)
+[2] [stackoverflow.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFw3MKnoDKKmf7gkryTOTlwfKLgIdqtpzsJpSIpQcIs2enOgPIW05FEIiBqzfAhmU9RuL6BRq5i6gEtHe0ToxaQ5lgBIShydBMsbNqAqZ6tFhPYE5IuXkpl83ht01Govi6KY4mwJcbDdccp6WrdAGqfbuOG5aSHy1rFD9g0xHGOqKrkzzkUC5CrT4d_oXIT9O_NUh7Om6q8b7pz_9GIJJaVqXKZRF27309P38ioUUOs)
+[3] [github.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGobT1QzPfIYgg84MKCwE3nhRU2IiQpAECYK2s8YjHb4hw_mvLehN862lOoT1zMWT2wrFhaAw32gMNKc7Qy8UT3XUh6RsMhDzQho7G3Qs4uTcNj5g5ddv4lhjdY4gcoS2s=)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

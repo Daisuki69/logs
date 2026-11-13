@@ -1,0 +1,90 @@
+Created At: 2026-11-12T09:52:35+08:00
+Completed At: 2026-11-12T09:52:50+08:00
+The search for "SQLite FTS5 INSERT OR REPLACE DELETE transaction concurrency busy_timeout WAL mode Windows" returned the following summary:
+When combining **SQLite FTS5**, heavy concurrent writing (`INSERT OR REPLACE`, `DELETE`), **WAL mode**, and **Windows file-locking semantics**, developers frequently hit `SQLITE_BUSY` ("database is locked") errors[1][2]. 
+
+FTS5 tables are complex virtual tables[3] that internally maintain multiple index b-trees (terms, postings, columns). An `INSERT OR REPLACE` (which translates to a `DELETE` followed by an `INSERT`) or an explicit `DELETE` causes intense write amplification. Under high concurrency, this triggers lock contention[4].
+
+The following architectural blueprint addresses these specific failure modes on Windows.
+
+---
+
+### 1. The Core Issues on Windows & FTS5
+* **Windows File Locking (POSIX vs. Win32):** Unlike Linux, Windows enforces strict file-lock semantics via the Win32 API. If a reader or checkpoint operation has a lock handle open, or if multiple handles fight over the `-wal` / `-shm` files, Windows bubbles up sharing violations more aggressively as `SQLITE_BUSY`.
+* **Deferred Transaction Upgrades (The Silent Deadlock):** If multiple threads/connections start a transaction with a plain `BEGIN` (which is *deferred*), they acquire a read lock. When they subsequently try to execute an `INSERT`/`DELETE`, they attempt to escalate to a write lock simultaneously. If two connections try to upgrade at the same time, one gets blocked and a deadlock or immediate timeout occurs[5].
+* **FTS5 Write Weight:** FTS5 updates write to multiple internal segments. Long transactions keep write locks active longer, starving other threads[2].
+
+---
+
+### 2. The Solution Checklist
+
+#### A. Order Your PRAGMAs Correctly (Crucial for Cold Starts)
+If you configure your database upon opening, ensure `busy_timeout` is set **before** `journal_mode = WAL`. If you set `journal_mode = WAL` first, a cold initialization on an empty/new database can race across threads and fail instantly with `database is locked` before the timeout is even armed[6].
+
+```python
+# Python Example
+import sqlite3
+
+conn = sqlite3.connect("search.db", timeout=5.0)  # Sets underlying busy timeout
+cursor = conn.cursor()
+
+# 1. Set timeout explicitly first (in ms)
+cursor.execute("PRAGMA busy_timeout = 5000;")
+
+# 2. Enable WAL mode next
+cursor.execute("PRAGMA journal_mode = WAL;")
+
+# 3. Recommended performance pragmas for concurrent workloads
+cursor.execute("PRAGMA synchronous = NORMAL;")
+cursor.execute("PRAGMA temp_store = MEMORY;")
+```
+
+#### B. Use `BEGIN IMMEDIATE` for Write Transactions
+Never use a plain `BEGIN` (Deferred) if you intend to modify the FTS5 table. Plain transactions only acquire locks lazily when the first write statement is executed, opening the door to concurrency collisions. 
+
+Instead, force an immediate exclusive write lock reservation[5]:
+```sql
+-- Correct way to start a write transaction
+BEGIN IMMEDIATE;
+
+-- Perform your FTS5 operations safely
+INSERT OR REPLACE INTO my_fts_table(rowid, title, body) VALUES (1, '...', '...');
+DELETE FROM my_fts_table WHERE rowid = 2;
+
+COMMIT;
+```
+If another thread is already writing, `BEGIN IMMEDIATE` will safely wait up to the `busy_timeout` (e.g., 5000ms) instead of throwing an immediate concurrency crash[7].
+
+#### C. Batch Your `INSERT` / `DELETE` Operations
+FTS5 performs significantly better when operations are batched. Avoid opening a separate transaction for every single row insertion or deletion.
+* **Bad:** 1,000 individual transactions calling `INSERT OR REPLACE` sequentially. (This creates 1,000 distinct WAL file syncs and massive lock contention).
+* **Good:** Wrap 500–1,000 changes inside a single `BEGIN IMMEDIATE ... COMMIT` block.
+
+#### D. Connection Architecture (The Single-Writer Pool)
+Even in WAL mode, SQLite permits **only one writer at a time**[7][1]. 
+* **Readers:** Can scale infinitely and concurrently without blocking writers[7][1].
+* **Writers:** Must be serialized at the application level. 
+
+If you are using multi-threaded environments (like Python's `concurrent.futures`, Node.js, C#, or Go), implement a dedicated **Write Queue or Write Lock mutex** at the application layer so that only one thread attempts a `BEGIN IMMEDIATE` write transaction at any given moment[8]. 
+
+#### E. Handle FTS5 Auto-Optimization (`automerge`)
+FTS5 automatically merges internal b-tree segments over time (`automerge`). During heavy write bursts, an automatic background merge can coincide with your `INSERT OR REPLACE` / `DELETE` calls, intensifying `SQLITE_BUSY` spikes. 
+
+If you notice intermittent locking during massive ingestion spikes, you can temporarily tune or disable FTS5's automatic merging behavior during the bulk load phase, and run an explicit optimization command manually afterward[3]:
+```sql
+-- Disable/adjust internal merging if needed during heavy loads, 
+-- or run a manual optimize command during low-traffic windows:
+INSERT INTO my_fts_table(my_fts_table) VALUES('optimize');
+```
+
+Sources:
+[1] [phenomic.io](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFQZV03Npa2tD8Jae3ESZA-BZSF25B2lecWjxUOBWTyoff_dAy_WblynKZtHmobSSDvv3pMR_zdWDT0LviQbhgqQlV1fbiMH5dXfPxHih4jhr7DxSpiC704DNnjFe8ConOmV_twxCLxOd7r-5I5lcTrYhtlaF8lFdFH)
+[2] [dbpro.app](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFWVNX1dKfaRnO6SMVNaRJN0JoyxY7uOBekMA5ocbEvDVP0tOcrMGNI8hz0pdRbOhyaQHGzeyWPqmBuWhOqntoGyIzXqoQXECVoy_6NuL9MADPxXhRrn5vM6K4J_aVMLRa-6IgpeLPl74ifFukzxdM=)
+[3] [sqlite.org](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGFiK9jOP7hDrvPo_UoqSixcGflhnmZPRJVVZUUpTJW7Tj9QWBeuPepX_u6HTxtegUWBSzW3YREzrE8Q_CniBuOpqJToUq3atSO0WfVvK9otpqH)
+[4] [github.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEhZvid5k8dOSAIC3DX2C-3Eqb05wNIbem3W3s0EA5Fe48Rj-yZBpxxDgiP8veXQKnSXkde9I8ung5wqM5t2RYnMA70GGiJOBknw10HRp299pXrnlM5cjnyV6sl__a1N4o5nEIUVQ==)
+[5] [berthub.eu](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHGZd5sAXttRryEroaVBEk1-7jGw382-fxwDzYYmpTU91zVdpLA2ZPopAgAs6_9iYmumY9h-y-cCxTUIE-QA5qJLJhxjI1Hsj1BM_ObuG8XuxVbDa2G3ca3Iwinmv4Bn6IN9A8rKQ2vbGcw6xZwFdMvM4zjOZy9GXYzokRKMvADQbqTeMCtUYbRhJ3_zxzpJBM=)
+[6] [cursor.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFa6Kp5YN7SgyVLwzf_QrnVfycmqKGAnt8Q102wk96LAixnNmWsixZJ5PN1HGvSqffgFkA2VfG4Y10-qQ60E5YrytRuQHRYHMDrbBouIoUIQJSIKK1YR-TubfzuAmFe-eZ169XsL9OO9KlM9Ng0OBc6iuT02vQTc8h79I1aKSYG_gajVTrfR3Kxe6zQlQkcpNVgax0eUJoSSe-heQ4GSymzpXUMu6cdzSbvVIiDA4iZqXN-9VFsEQkKQImPCjP26zhVuVImajg80KlJHaxWbjtT8voXP1p_ErF59kCB1AoGkYGnz2ANpu_v)
+[7] [reddit.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFzrJpcij1rgcKhZonBklMy1SIGeoCAUGwR_dQ8zEstkhKbX1Ou-mKfUYFd9DqOxkU7PDoTyGkbxWvWoPaEWW73LM3Q6S2FtCLzjZyKnPA2gGV6fOzdxHTr0kkWRMlJsRvkHvQqB7s_zF0NKAFDePQnX-nXj6xL-HqG8qp_6YDs0rfSn_-mQ-4Xsq677zO6QDBds_nZwuE=)
+[8] [stackoverflow.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGNsAv94Xu0nF6NFJjsZAOsj7BFBbQGo89Xaa5_wjTBLNMP5r4y2zPPpipkTf3VKSaHCYocpul4ra0jA68MZxrxaBaHsrneEQp77q4mjD3iWTxvdWwRXOLYAHKLmUiKsEosW2FU1wyrT2lRTUzwvXrnxMsv7qkEWYlkCTlJ56Kx3owJvmjeWmGLfQ==)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

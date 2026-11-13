@@ -1,0 +1,102 @@
+Created At: 2026-11-11T06:09:20+08:00
+Completed At: 2026-11-11T06:09:28+08:00
+The search for "Python sqlite3 connection.backup live WAL mode database atomic snapshot consistency" returned the following summary:
+When working with SQLite in **WAL (Write-Ahead Logging) mode**, performing a naive file copy (like using `shutil.copy` on the `.db` file) is **unsafe and will result in data loss**[1]. In WAL mode, committed transactions often live solely in the separate `-wal` file until they are checkpointed back[1][2]. 
+
+To achieve an **atomic, consistent snapshot** of a live database without blocking readers or writers, Python provides the built-in SQLite Online Backup API via `connection.backup()`[3][4][5].
+
+---
+
+### Why `connection.backup()` Ensures Consistency in WAL Mode
+1. **Handles WAL Synchronization Automatically:** The underlying SQLite backup engine reads data from both the main database file and the active WAL file, ensuring that all committed states up to the start of the backup are safely transferred[1][5].
+2. **Atomic & Isolated:** The backup process creates a transaction-safe, point-in-time snapshot of the database into the target connection[3]. 
+3. **Non-Blocking (Live Backup):** The source database remains fully accessible for reads and writes while the backup is running[3][6]. SQLite locks only pages as they are being read, minimizing contention.
+
+---
+
+### Code Example: Safe Live Backup in Python
+
+```python
+import sqlite3
+import sys
+
+def create_safe_backup(source_path: str, backup_path: str):
+    # Establish connection to the live source database
+    src_conn = sqlite3.connect(source_path)
+    
+    # Establish connection to the destination backup file
+    dest_conn = sqlite3.connect(backup_path)
+
+    try:
+        print("Initiating atomic online backup...")
+        
+        # .backup() takes the destination connection.
+        # By default (pages=-1), it copies the entire database in one safe operation.
+        src_conn.backup(dest_conn)
+        
+        print(f"Backup successfully written to {backup_path}")
+        
+    except sqlite3.Error as e:
+        print(f"An error occurred during backup: {e}", file=sys.stderr)
+        raise
+    finally:
+        # Clean up connections
+        dest_conn.close()
+        src_conn.close()
+
+if __name__ == "__main__":
+    create_safe_backup("production.db", "backup_snapshot.db")
+```
+
+---
+
+### Advanced: Progress Tracking for Large Databases
+If you are backing up a massive database file, copying it all at once can temporarily hold locks or consume memory. You can use the `pages` parameter and a callback function to chunk the backup incrementally[3][6]:
+
+```python
+import sqlite3
+
+def progress_status(status, remaining, total):
+    copied = total - remaining
+    print(f"Progress: {copied}/{total} pages copied ({T_pct := (copied/total)*100:.1f}%)")
+
+def create_incremental_backup(source_path: str, backup_path: str):
+    with sqlite3.connect(source_path) as src_conn, sqlite3.connect(backup_path) as dest_conn:
+        
+        # Copy 100 pages at a time, invoking progress_status in between
+        src_conn.backup(
+            target=dest_conn, 
+            pages=100, 
+            progress=progress_status
+        )
+        
+    print("Incremental WAL backup completed successfully.")
+
+if __name__ == "__main__":
+    create_incremental_backup("production.db", "backup_snapshot.db")
+```
+
+---
+
+### Alternative: `VACUUM INTO`
+If you are running **SQLite 3.27.0 or newer**, you can also achieve a single-file atomic snapshot using SQL execution rather than the Python backup API[1][7]:
+
+```python
+import sqlite3
+
+with sqlite3.connect("production.db") as conn:
+    # Safely creates an independent, consistent snapshot file on disk
+    conn.execute("VACUUM INTO 'backup_snapshot.db';")
+```
+*Note: `VACUUM INTO` also reads the WAL state properly and creates a clean, checkpointed single-file database clone[1][7].*
+
+Sources:
+[1] [reddit.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFsXagQGvNXE-UAMIDgzYFdVpjtko2EWMEUF384JWQ6WAntme46ltKSgM5ZnMZHeiyCllZUDgDadgz9IrT71GbvEgES7B_g3F44D0nXuhyhohD1FB7K2iKoDrBr5CO18n88_Boz3UUxsuJn--d6vbwjZqHW3OCoAXqiRbh-V68NSfZv6K2tZxKgl55yXA32JTxy52QP)
+[2] [coddy.tech](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGIG-r75F10JoK_JulN9-vu45Nlas6DMNbPvP8FYdJZyTYdwvlQfN1qrLSqxNF8r63kVuCWACPu7KyJq2i0WWCSlCkOKW2feM8-t5I8njzCylDQc_gVC12xSSCref5LkM7sr5NtHnadIRmyn4GT)
+[3] [zetcode.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFnV-Ij2ULqIVS40NimWNmDcpa1vro3n0RqFT5SyVj97S4zfuTFw0vQU2YYjLj5tJ6f7K6maAQgFcvYRsR794sgBc8seuwEjYtfmF-4dYyFQC5CwqJJTY9DmMDoLsZ7EfXVEtyOahZ0ehaZXw==)
+[4] [kunalganglani.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHQK7aqbERBwtTyFj8GQ5t1pp2zjG6-VCcWtirzuCaHrl5Y1b_zTTMXg-0MpL7yzwmvGyY3CLRorEEPTPSf6kTd1prkuLkBDXsx8P5iPBS_qqYibyD3xGjPn6DGg8LU_7KxO9WNAVf0_qvRH66qseqHOPY=)
+[5] [coddy.tech](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEEC9j09wkQxdy3N40HWZJw7spA8consZ7q0E5tUaMZuOJFCsLGCXfm-ZLutX-ob2d6xnZUTDOV3o8Q-GKyr7qcBYWqEBIGO_KkE--6PVfJax9uOpxipzyzmEbuCa2NsTf9SlI5QOLA)
+[6] [python.org](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHfprmRyacNAKTg4YeiGAOxVh18bpz9XMdv0rcGJl65sE42ED-95YuYKcL8GJycu4JWOnhFsZdQlk-diDU80HRIcbfkOBB5r8Wf8AXUxJidtrHbF30-Ie9CmQqEWuG5Cr0HXFwp)
+[7] [codercops.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGc2AG1HC2hl_28KfcDrX4o9KyaBrSvWMSRqpgg80A5K4voaOWBYtER8XwULWkuWVmPofKM2O7qTRSaC2W4Y-i1-tepEl4TemZ47QlBFoUVYD_kdAId_RPWSbqIGnvsW6Udybsc04SxnmMNsoGEgrQbNgT3tcai2gCQc-NercwpjD-bu13qWx0-)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

@@ -1,0 +1,69 @@
+Created At: 2026-11-11T05:03:38+08:00
+Completed At: 2026-11-11T05:03:49+08:00
+The search for "vercelignore syntax exclude folder files deployment" returned the following summary:
+The **`.vercelignore`** file is used to exclude specific files and folders from being uploaded and deployed to Vercel[1]. It follows the exact same syntax conventions as a standard `.gitignore` file[2].
+
+### 1. Where to place it
+Place the `.vercelignore` file directly in the **root directory** of your project (the same level as your `package.json` or main configuration files)[2].
+
+---
+
+### 2. Basic Syntax Rules
+
+* **One rule per line:** Each file or directory pattern should be on its own line[2].
+* **Comments:** Use `#` at the beginning of a line to add comments.
+* **Folders:** Specifying a folder name will exclude that entire folder and everything inside it.
+* **Wildcards (`*`):** Match arbitrary characters.
+* **Negation (`!`):** Include a file that would otherwise be ignored by a broader rule.
+
+---
+
+### 3. Common Examples
+
+#### Excluding specific folders and files
+To prevent folders like documentation, tests, or hidden draft files from uploading during deployment:
+```text
+# Ignore entire directories
+/docs/
+/tests/
+/private-assets/
+
+# Ignore specific file types anywhere in the project
+*.log
+.DS_Store
+
+# Ignore a specific file in the root
+secret-config.json
+```
+
+#### Ignoring everything *except* what you specify (Allowlist approach)
+If you want Vercel to ignore everything in your repository by default and only upload specific directories/files, you can use a wildcard combined with negation (`!`) rules[1]:
+
+```text
+# 1. Ignore everything in the root
+/*
+
+# 2. Explicitly allow only what is needed for deployment
+!api/
+!public/
+!src/
+!package.json
+!tsconfig.json
+!vercel.json
+```
+
+---
+
+### 4. Default Exclusions (No need to add these)
+Vercel automatically ignores standard files and directories for security and optimization purposes (meaning you don't need to manually list them)[3]:
+* `.git`, `.svn`, `.hg`
+* `node_modules`
+* `.next`, `.vercel`
+* `.env.local`, `.env.*.local`[3]
+
+Sources:
+[1] [vercel.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG7doKZBfFC6397HMg5oWLkimd3W3beL2nJrCaT-B60QN2u0HFlppIHA_PniYvDN_mF4af87eZR-QH6NJwXpFsEGeOLjvHS9VKtewsSivZkdeYOWi8kTyBreTRvNPwQ5zWvXUk0MgQ=)
+[2] [vercel.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG7doKZBfFC6397HMg5oWLkimd3W3beL2nJrCaT-B60QN2u0HFlppIHA_PniYvDN_mF4af87eZR-QH6NJwXpFsEGeOLjvHS9VKtewsSivZkdeYOWi8kTyBreTRvNPwQ5zWvXUk0MgQ=)
+[3] [vercel.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGsYnCV8BlQxENspoyBJVK2diuOKS4tBeE0yJJmKF7KRVc3TclwXtFkNoALlqh-QcVVMZEsLKz9kWFuhoAlYttJ2DsMXFCLos0FGo95KyIeM-nzOXXxPi3Sy7GfEREwH4Xcig==)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

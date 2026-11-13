@@ -1,0 +1,94 @@
+The search for "tamper proof client side quiz results base64 hmac signature exploit" returned the following summary:
+The scenario described involves a **fundamental architectural anti-pattern** in web application security: attempting to make data "tamper-proof" on the client side using cryptographic signatures (like an HMAC) when the secret key or the signing logic resides entirely within the user's browser (client-side JavaScript).
+
+When a quiz application passes results (e.g., score, answers, or a completion token) encoded in **Base64** and accompanied by an **HMAC signature**, but generates or validates that signature using client-side resources, it is fundamentally insecure. 
+
+An explanation of why this architecture fails, how the exploit works, and how to properly remediate it is detailed below.
+
+---
+
+### 1. The Core Flaw: The "Confiding in the Enemy" Principle
+An HMAC (Hash-based Message Authentication Code) requires two things to secure a message:
+1. **The Data (Payload):** e.g., `{"score": 50, "passed": false}`
+2. **A Secret Key:** Known *only* to the trusted authority (the server).
+
+If a quiz application calculates or checks the HMAC signature in client-side JavaScript, **the secret key must be exposed to the browser[1].** Anyone can open up Chrome/Firefox Developer Tools, inspect the source code, find the secret key (or the Web Crypto API calls), and use it[2][3]. 
+
+Even if the application uses Base64 to obfuscate the quiz payload, **Base64 is an encoding scheme, not encryption.** Anyone can decode Base64 instantly, alter the score, recalculate the HMAC using the leaked secret key, re-encode it, and send it to the server.
+
+---
+
+### 2. Step-by-Step Exploit Flow
+
+An attacker can easily bypass a client-side HMAC quiz restriction using the following steps:
+
+#### Step A: Intercept and Decode the Payload
+When you finish a quiz, the application might send a cookie, a hidden form field, or a JSON payload in a POST request that looks like this:
+* **Base64 Payload:** `eyJzdGNvcmUiOjEwLCJwYXNzZWQiOmZhbHNlfQ==`
+* **HMAC Signature:** `a8f5c2...` (Hex or Base64 string)
+
+Decoding the Base64 payload reveals plain JSON:
+```json
+{"score": 10, "passed": false}
+```
+
+#### Step B: Extract the Secret Key
+An attacker opens the browser’s Developer Tools (`F12`), goes to the **Debugger / Sources** tab, or searches through bundled JavaScript files (`bundle.js`, `quiz.js`) for keywords like `hmac`, `secret`, `crypto`, `sign`, or the signature string itself. 
+Because the browser needs the key to generate the signature before submission, the key is hardcoded directly into the script or fetched via an insecure configuration file[1].
+
+#### Step C: Forge the New Payload
+The attacker modifies the JSON data to reflect a perfect score:
+```json
+{"score": 100, "passed": true}
+```
+They re-encode this new JSON string into Base64:
+`eyJzdGNvcmUiOjEwMCwicGFzc2VkIjp0cnVlfQ==`
+
+#### Step D: Recalculate the HMAC Signature
+Using the extracted secret key, the attacker runs a quick script (using Node.js, Python, or even directly in the browser console) to generate a valid HMAC-SHA256 (or whichever algorithm is used) signature for the newly forged payload:
+
+```javascript
+// Example of how an attacker computes the valid signature in the browser console
+async newVal => {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode("EXPOSED_SECRET_KEY");
+  const messageData = encoder.encode("eyJzdGNvcmUiOjEwMCwicGFzc2VkIjp0cnVlfQ==");
+  
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw", keyData, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+  );
+  const signature = await crypto.subtle.sign("HMAC", cryptoKey, messageData);
+  return Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+```
+
+#### Step E: Submit the Exploit
+The attacker replaces the old payload and the old signature with the newly forged, validly signed payload using an intercepting proxy (like Burp Suite) or by tweaking the AJAX request payload directly in the browser console. The server receives the request, checks the HMAC against its copy of the key, sees that it matches, and accepts the fraudulent quiz score.
+
+---
+
+### 3. Why Developers Make This Mistake
+* **Confusing Integrity with Authorization:** Developers often learn that "HMAC prevents tampering" (which is true in distributed systems). However, they forget that HMAC relies on a *secret* shared only with trusted parties. Handing the secret to the client turns the user into a "trusted party."
+* **Trusting Obfuscation:** Relying on Base64 encoding or minified JavaScript to keep logic hidden ("Security through obscurity").
+
+---
+
+### 4. Proper Remediation: Moving Logic Server-Side
+
+To fix this vulnerability completely, **never trust the client with scoring or result generation.**
+
+1. **State Tracking on the Server:** 
+   * The server should track the state of the quiz session (e.g., which question the user is on, what time it started).
+   * When a user answers a question, they send *only* their selected option to the server.
+2. **Server-Side Evaluation:** 
+   * The server checks the answer against its own answer key, updates the score in a secure database or server-side session, and decides whether the user passed.
+3. **If Tokens Must Be Used (Stateless Architecture):**
+   * If you must use signed tokens (like JWTs) to pass state back and forth, **the private/secret key must reside exclusively on the server**. 
+   * The client should only send raw answers or actions; the server decodes, validates, *and* computes the results internally before issuing a final signed certificate or score token.
+
+Sources:
+[1] [medium.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQF8PtcxxjsEOJJz8w93TjHYi3OejJRINUu_qGr05gdnjSP3UnkQeK2Bbe6drn7Hnr-NkQ0EL94IxHj9WvVZbAdJBYMg7pBMiIayA73PFie_OQwagPIgIPAiCFQAjCFoqLIMuXnw40pHxU9TEAHP-Eu05meuSTi7pC-jtCMYY1zTIlG0Crytmy1tzpttxoYhWNJrYzrh_YW5M-yUDl8LwfSiU4lIKx4eqAydBl7iL8JM51bEMNALami8xw3nnWY=)
+[2] [reddit.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEAsBwxUPItgZ1_jcXxMuEv7XpHRdgy8nxrGQvDOBWQsmb0HXh1EVh9cl8cpk2TuVLFlSXfI6IbNOluKiS7eD8AFWAHaIWflhd276cKNUhhkKeTJBQhEnK2PffI8ug90vsXvd20jGUXM-5PCjr_A04VmoK6EExQdUr3RNzqBmrF7AlfU4jmZAmLd2UdLyHxZiu58CnZOEOhivbY)
+[3] [medium.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGcUSIpMZNcc6MaWuyml01s2oU-XqPoVKTo7VBuklh_X0zj7RA9WXNi0a2-eXWudWiwX1TYPaB-anvVQ_0Ok1ph5u_aJvjJqcx2TOPVOPOMFkyyuhIGpJvDQpMnG38ZLUpts8mWYWrG4dgTFIuZDS0xdATCN9gjltI6lSD2Z-8rj507m5g_SMcPskabZuDdfdUPsLcBlgPykPCiWCqbDVze_5ay551i_3shJgBe04mVkA==)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

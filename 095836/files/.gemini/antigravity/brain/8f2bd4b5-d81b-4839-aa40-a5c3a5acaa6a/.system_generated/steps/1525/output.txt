@@ -1,0 +1,9 @@
+Created At: 2026-11-12T09:57:30+08:00
+Completed At: 2026-11-12T09:57:36+08:00
+Command exited with code 0.
+
+Command output:
+IsProcessInJob: False
+C_Exploit 7 [('F', '.\\firebase-config.js'), ('F', '.\\HISTORY.md'), ('F', '.\\index.html'), ('F', '.\\package.json'), ('F', '.\\QUIZ06 (1) (1).html'), ('F', '.\\teacher.html'), ('F', '.\\vercel.json')]
+S_Exploit 8 [('F', '.\\firebase-config.js'), ('F', '.\\HISTORY.md'), ('F', '.\\index.html'), ('F', '.\\need discussion.md'), ('F', '.\\package.json'), ('F', '.\\QUIZ06 (1) (1).html'), ('F', '.\\teacher.html'), ('F', '.\\vercel.json')]
+S_TamperProof 8 [('F', '.\\firebase-config.js'), ('F', '.\\HISTORY.md'), ('F', '.\\index.html'), ('F', '.\\need discussion.md'), ('F', '.\\package.json'), ('F', '.\\QUIZ06 (1) (1).html'), ('F', '.\\teacher.html'), ('F', '.\\vercel.json')]

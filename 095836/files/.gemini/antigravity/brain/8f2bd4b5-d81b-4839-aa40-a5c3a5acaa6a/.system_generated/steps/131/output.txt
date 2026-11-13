@@ -1,0 +1,9 @@
+Command exited with code 0.
+
+Command output:
+Test server listening on 3333
+index.html status: 200
+teacher.html status: 200
+firebase-config.js status: 200
+vercel.json status: 200
+Server closed successfully.

@@ -1,0 +1,8 @@
+Command exited with code 0.
+
+Command output:
+
+teacher.html:141:const defaultQuiz = {
+teacher.html:359:  populateQuizData(defaultQuiz);
+
+

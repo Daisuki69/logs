@@ -1,0 +1,4 @@
+Command exited with code 0.
+
+Command output:
+ZERO IN-CODE DOCUMENTATION verified: All files comply perfectly with Rule 9!

@@ -1,0 +1,64 @@
+The search for "prevent long press select all text selection mobile web ios android -webkit-touch-callout user-select" returned the following summary:
+To completely prevent long-press context menus, text highlighting, and "select all" behaviors on mobile web (iOS Safari and Android Chrome/Firefox), you need a combination of **CSS properties** and sometimes **JavaScript touch/contextmenu event prevention**.
+
+### 1. The CSS Solution (Recommended)
+
+Apply these styles to the specific elements (like buttons, images, or UI components) or globally to your app wrapper[1]:
+
+```css
+.no-select {
+  /* Standard property supported by modern browsers */
+  user-select: none;
+  
+  /* Prevent iOS Safari text selection and default callout popup menu */
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  
+  /* Legacy prefixes for older mobile browsers */
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  
+  /* Removes the grey/blue tap highlight box on mobile webkit */
+  -webkit-tap-highlight-color: transparent;
+}
+```
+
+* **`user-select: none;`**: Stops text from being highlighted or selected[2][1].
+* **`-webkit-touch-callout: none;`**: Crucial for iOS. This specifically kills the popup menu/callout bubble that appears on a long-press (e.g., "Copy", "Look Up", "Share")[3][1].
+
+---
+
+### 2. The JavaScript Fallback (For Stubborn Long-Press Behaviors)
+
+Sometimes on mobile browsers (particularly Android WebViews or specific iOS contexts), a long-press will still trigger selection handles or context menus. You can intercept and cancel these gestures via JavaScript:
+
+```javascript
+// Prevent context menu (long-press popup on desktop & mobile)
+document.addEventListener('contextmenu', function (e) {
+  e.preventDefault();
+});
+
+// Alternatively, target specific elements:
+const element = document.querySelector('.no-select');
+
+element.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+});
+```
+
+If you want to prevent touch-hold behaviors entirely on a custom interactive component, you can also prevent default behavior on touch events, though use this cautiously as it can break scrolling if applied too broadly:
+
+```javascript
+element.addEventListener('touchstart', function(e) {
+  // Use cautiously; prevents default touch actions like text grabbing
+  // Note: Avoid putting this on scrollable containers.
+}, { passive: false });
+```
+
+Sources:
+[1] [flaviocopes.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE3LIzGMBEqk2RAi0oR9gS_9-RP6_wBKsk-t_ebxCLQD0X8Z8ac0qGMlt3NwOGucwVQMhAVw6us0qzx7uaHxxo2tpiWqmgTSRapBZzeJP7cCao0PiUtsaB58YPxFj8v1OGAjzlfuJuG2w==)
+[2] [fdgweb.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE2K7x5PmEmJHrbQOAgfzgcV3QYH8U3CegcgKJtZ-_lgk1_7utcYjS980acGUyB-OXmA9Ws3yemPT1GvapRW2YM_hqddtCZB_QQ5ueNXAWwwbTihao9Rz5l4umMauyK1Kzn1G2P8vPZBtBpofMwKOpEv3GapjO6E4uSKlhFiVOBw6SyQbLoiZLm-WK2rF7nrQJdow==)
+[3] [github.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHmhAw4_5jpW3Q5E10SG3zsJH_kx_HGfRQQPGw0zreFEveqFmG0ToF1WQXpr2Mpaliv7_kMCm3HHJDBFn8c_HiuyHhUfXyTKf9txSCZQguChNzpJhSyZfO1cXPn5i-NBzGyT4h5UQSu)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

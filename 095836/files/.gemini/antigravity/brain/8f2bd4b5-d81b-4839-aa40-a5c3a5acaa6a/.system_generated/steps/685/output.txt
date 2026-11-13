@@ -1,0 +1,10 @@
+Command exited with code 0.
+
+Command output:
+Submissions read response: {
+  error: {
+    code: 403,
+    message: 'Missing or insufficient permissions.',
+    status: 'PERMISSION_DENIED'
+  }
+}

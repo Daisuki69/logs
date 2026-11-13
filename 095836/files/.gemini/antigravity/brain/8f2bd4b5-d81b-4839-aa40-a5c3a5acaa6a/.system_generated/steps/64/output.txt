@@ -1,0 +1,8 @@
+Command exited with code 0.
+
+Command output:
+Title in Firestore: C Quiz: Switch Case
+Total questions in Firestore: 20
+Q1 prompt: Which C statement selects one of many code blocks to run based on the value of an expression?
+Q1 correct: switch
+Q1 distractors count: 3

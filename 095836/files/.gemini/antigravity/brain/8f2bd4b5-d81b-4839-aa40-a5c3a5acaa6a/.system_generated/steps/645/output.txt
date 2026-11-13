@@ -1,0 +1,60 @@
+The search for "quiz builder teacher dashboard tabs submissions questions ui design patterns" returned the following summary:
+Designing a **Teacher Dashboard** featuring a **Quiz Builder**, **Questions management**, and **Student Submissions** requires balancing heavy data density with low-friction creation tools. 
+
+The best UI/UX design patterns for structuring these elements focus on reducing cognitive load for educators who frequently bounce between authoring content and grading student outcomes.
+
+---
+
+### 1. High-Level Architecture & Dashboard Tabs Pattern
+The top-level navigation should use horizontal tabs or a segmented controller to clearly divide the lifecycle of an assessment (Creation vs. Evaluation).
+
+*   **Suggested Tab Structure:**
+    1.  **Overview / Analytics:** Quick metrics (Completion rate, average score, hardest question).
+    2.  **Builder / Questions:** The workspace for authoring and arranging test items[1].
+    3.  **Settings:** Timing, availability windows, security (proctoring/randomization), and grading weights.
+    4.  **Submissions / Grading:** The central hub for reviewing student attempts[1].
+*   **UI Pattern Tip:** Keep a persistent **Primary Action Bar** sticky at the top or bottom right containing high-stakes actions like *“Preview”*, *“Discard Changes”*, and *“Publish / Assign”*[1].
+
+---
+
+### 2. The Quiz Builder & Questions Tab UI Patterns
+When a teacher clicks into the **Questions** tab, they need an interface that handles both macro-organization (the flow of the test) and micro-details (the individual question configurations).
+
+*   **Split-Panel Layout (The Master-Detail Pattern):**
+    *   *Left Sidebar (Navigation/Outline):* A compact, drag-and-drop list of question blocks (e.g., *Q1: Multiple Choice, Q2: Short Answer, Q3: Hotspot*[2]). Shows quick status icons (e.g., points allocated, validation errors like missing correct answers).
+    *   *Main Canvas (Editor):* Focuses on the selected question item. Changes made here instantly update the left outline.
+*   **Accordion vs. Card Stack Pattern:**
+    *   For shorter quizzes, use an expandable **Card Stack** where all questions live on one scrollable page, but individual questions can be collapsed to minimize scrolling fatigue.
+*   **Inline Question Type Switcher:**
+    *   A dropdown or icon-pill selector near the top of the question card allowing teachers to switch question formats (MCQ, True/False, Matching, Essay) without losing typed prompt text.
+*   **Empty & Error States:**
+    *   If a question lacks a designated "correct answer" or has zero points, highlight the specific field with a soft inline banner (e.g., *“Select at least one correct option to publish”*) rather than blocking the entire interface silently[1].
+
+---
+
+### 3. Submissions & Grading Tab UI Patterns
+The Submissions tab bridges the gap between completed student work and performance tracking. It usually requires a dual approach: **Aggregated Data** (spreadsheet style) and **Individual Evaluation** (focus mode).
+
+*   **Master-Detail Table/List View (Triage View):**
+    *   A robust data table listing students (`Name`, `Submission Status`, `Submitted Time`, `Score`, `Actions`).
+    *   *Badges & Color Coding:* Quick visual indicators for status—e.g., *Needs Grading* (Amber/Yellow), *Graded* (Green), *Late / Missing* (Red/Gray).
+    *   *Filter & Sort Toolbar:* Quick filters like "Show items needing manual review" vs. "Auto-graded only."
+*   **Split-Screen "SpeedGrader" Pattern:**
+    *   When a teacher clicks a student's submission, avoid forcing them to navigate back and forth. Open a **Slide-over Drawer** or a dedicated **Split View**:
+        *   *Left Side:* The student’s complete quiz layout with their answers highlighted alongside correct answers.
+        *   *Right Side:* A persistent grading panel with input fields for points per question, quick comment macros (canned feedback snippets), and an overall comment box.
+    *   *Keyboard Shortcuts:* Implement hotkeys (`Enter` to save and jump to the next student, arrow keys to navigate questions) to dramatically speed up bulk grading.
+
+---
+
+### 4. Key UI/UX Micro-Patterns to Incorporate
+
+*   **Contextual Drag Handles:** Use standard 6-dot grip icons on the left of question items to signify that reordering via drag-and-drop is supported.
+*   **Live Preview Toggle:** A prominent toggle switch or modal button (*"Preview as Student"*) so teachers can test interactive elements, randomized question pools, and timers before deploying[1].
+*   **Auto-Save Indication:** Because quiz building involves heavy content entry, always display a subtle, non-intrusive status indicator in the header (e.g., *“All changes saved to draft”* or *“Saving…”*) to alleviate user anxiety.
+
+Sources:
+[1] [figr.design](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGZ3uIGnHB1N0B7ytTqQeq_OEihnG-zmhx4Lo4OTb1MjraPK0NMSN-iYnF_h9W5xNGSCF1mR8UsT0kbHWV8SgnhmSr5DLOGskqMmSUIe6DNSkCfSHxmh5DBhTcrVe1K9P0=)
+[2] [dribbble.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEly5QaJ3IlHdOCrhUHyr6U9q9UlE7jpRC380Tn_bFIRAXiKMXt34oofwY87FzArfkYJoOnjcMlmuXmRIJLxLnQkxYG7sh20WxegQ8JqH1p3SeCWNyD0natVa1IF9I5)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

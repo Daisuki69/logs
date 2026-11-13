@@ -1,0 +1,11 @@
+Command exited with code 0.
+
+Command output:
+Testing delete on: projects/sir-jasper-quiz/databases/(default)/documents/quizzes/active/submissions/5wyssEmBiWtRseKY5bp4
+Delete response: {
+  error: {
+    code: 403,
+    message: 'Missing or insufficient permissions.',
+    status: 'PERMISSION_DENIED'
+  }
+}

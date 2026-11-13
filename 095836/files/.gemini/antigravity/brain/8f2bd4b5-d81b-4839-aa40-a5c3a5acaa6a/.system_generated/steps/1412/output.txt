@@ -1,0 +1,17 @@
+Created At: 2026-11-11T06:09:20+08:00
+Completed At: 2026-11-11T06:09:24+08:00
+Command exited with code 1.
+
+Command output:
+brain stats: { count: 6199, bytes: 56545875, nmCount: 5608, nmBytes: 41527677 }
+annotations\8f2bd4b5-d81b-4839-aa40-a5c3a5acaa6a.pbtxt 92
+chapter_titles\8f2bd4b5-d81b-4839-aa40-a5c3a5acaa6a.pb 181
+conversations\8f2bd4b5-d81b-4839-aa40-a5c3a5acaa6a.db 26542080
+conversations\8f2bd4b5-d81b-4839-aa40-a5c3a5acaa6a.db-shm 32768
+conversations\8f2bd4b5-d81b-4839-aa40-a5c3a5acaa6a.db-wal 10067176
+S:\ write probe:
+S:\ root W_OK OK
+  File "<string>", line 7
+    for row in cur.execute(" SELECT type name sql FROM sqlite_master WHERE sql IS NOT NULL\):
+                           ^
+SyntaxError: unterminated string literal (detected at line 7)

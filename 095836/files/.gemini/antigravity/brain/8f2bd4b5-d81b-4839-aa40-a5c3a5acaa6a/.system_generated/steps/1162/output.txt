@@ -1,0 +1,42 @@
+Created At: 2026-11-11T05:35:13+08:00
+Completed At: 2026-11-11T05:35:16+08:00
+Command exited with code 0.
+
+Command output:
+40: .sub-card{background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+41: .sub-meta{font-size:0.85rem;color:var(--mu);margin-top:4px}
+42: .sub-score{font-size:1.15rem;font-weight:700;color:var(--ok);text-align:right}
+108: <b>Auto Record Quiz</b>
+109: <div style="font-size:0.85rem;color:var(--mu)">Record submissions instead of downloading file or base64 conversion</div>
+150: <div id="view-sub" class="hide">
+155: <span id="sub-count-badge" class="badge">0 Done</span>
+156: <button id="clear-sub-btn" class="danger" type="button" style="padding:4px 10px;font-size:0.85rem">Clear Students</button>
+160: <div id="sub-feed">
+324: async listRecords(id) {
+334: async purgeRecords(id) {
+335: const docs = await this.listRecords(id);
+363: autoRecordQuiz: false
+387: $('btn-auto-rec').textContent = settingsState.autoRecordQuiz ? 'ON' : 'OFF';
+388: $('btn-auto-rec').style.background = settingsState.autoRecordQuiz ? 'var(--ok)' : 'transparent';
+389: $('btn-auto-rec').style.color = settingsState.autoRecordQuiz ? '#fff' : 'var(--tx)';
+396: ['tab-btn-sub', 'view-sub'],
+399: function switchTab(activeBtnId) {
+408: $(b).onclick = () => switchTab(b);
+412: $('clear-sub-btn').onclick = () => {
+430: await EncryptedLocalDB.purgeRecords(quizId);
+436: alert('Error clearing records: ' + err.message);
+484: settingsState.autoRecordQuiz = !settingsState.autoRecordQuiz;
+742: const docs = await EncryptedLocalDB.listRecords(quizId);
+744: $('sub-count-badge').textContent = docs.length + ' Done';
+745: const feed = $('sub-feed');
+747: feed.innerHTML = '<p style="text-align:center;padding:24px;color:var(--mu);margin:0">No records saved yet.</p>';
+758: html += '<div class="sub-card"><div><b style="font-size:1.05rem">' + escapeSubHtml(name) + '</b>' + (course ? ' <span class="badge">' + escapeSubHtml(course) + '</span>' : '') + '<div class="sub-meta">Violations: ' + escapeSubHtml(viol) + ' • Time: ' + escapeSubHtml(time) + (date ? ' • ' + escapeSubHtml(date) : '') + '</div></div><div class="sub-score">' + escapeSubHtml(score) + '</div></div>';
+762: $('sub-feed').innerHTML = '<p style="color:var(--bad);padding:14px;margin:0">Failed to load records: ' + err.message + '</p>';
+768: if (!document.hidden && !$('view-sub').classList.contains('hide')) {
+298: <div id="res-actions" class="row" style="justify-content:center">
+417: async appendRecord(id, payload) {
+729: EncryptedLocalDB.appendRecord(quizId, subData).catch(() => { });
+744: const isAuto = st.autoRecordQuiz !== false;
+746: $('res-actions').style.display = 'none';
+749: $('res-actions').style.display = 'flex';
+817: const isAuto = !quizData || !quizData.settings || quizData.settings.autoRecordQuiz !== false;

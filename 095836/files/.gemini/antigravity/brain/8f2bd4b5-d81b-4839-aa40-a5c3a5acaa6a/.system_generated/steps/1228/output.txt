@@ -1,0 +1,88 @@
+Created At: 2026-11-11T05:42:58+08:00
+Completed At: 2026-11-11T05:43:04+08:00
+The search for "Firestore REST API concurrent Promise.all vs batch write delete documents and patch document field" returned the following summary:
+When interacting with the **Cloud Firestore REST API** to delete documents and patch (update) a document field across multiple targets, you have two primary architectural patterns to choose from: 
+
+1. **Concurrent REST requests via `Promise.all`** (sending independent HTTP `DELETE` and `PATCH` requests in parallel).
+2. **A single atomic/batched operation** using Firestore's native REST endpoints (`:commit` or `:batchWrite`).
+
+---
+
+### 1. Concurrent REST Requests via `Promise.all`
+This approach involves mapping your items to individual fetch/axios calls (e.g., calling `DELETE /v1/projects/.../documents/...` and `PATCH /v1/projects/.../documents/...` at the same time) and wrapping them in `Promise.all()`.
+
+* **How it works:** Each operation travels over the wire as a completely separate HTTP request. Firestore handles them concurrently as distinct, independent server-side operations.
+* **Pros:**
+  * **Simplicity:** Easier to construct if you already have granular endpoint helper functions for single deletes and patches.
+  * **No strict batch limit:** You aren't tightly bound by the standard 500-operation transaction/batch constraints (though you should still throttle concurrency to avoid overwhelming network sockets or hitting project-level rate limits).
+* **Cons:**
+  * **Non-atomic (Eventually Consistent):** If request #3 fails halfway through, requests #1, #2, and #4 might have already succeeded. You are left with a **partial state/dirty write**.
+  * **Network Overhead:** Opening multiple TLS/TCP connections and sending HTTP headers for every single document delete or patch uses more bandwidth and incurs higher latency overhead.
+
+---
+
+### 2. Batched Write via Firestore REST API (`:commit`)
+Instead of multiple HTTP requests, Firestore provides a native REST mechanism to bundle multiple writes into a single payload using the **`projects.databases/documents:commit`** endpoint[1].
+
+* **How it works:** You send a single `POST` request to `https://firestore.googleapis.com/v1/projects/{project_id}/databases/{database_id}/documents:commit` with a JSON body containing an array of `writes`[1]. Each write can be a `delete` path or a `update` (patch) transformation.
+* **Pros:**
+  * **Atomicity:** It is an all-or-nothing operation. Either *all* deletions and patches succeed, or *none* of them do[2]. If any document precondition fails, the whole batch rolls back[3].
+  * **Single Network Roundtrip:** Drastically reduces network overhead. Instead of $N$ HTTP requests, you make 1 request.
+  * **Fewer Listener Triggers:** If clients are listening to the modified documents or collections, a batch commit groups changes cleanly, reducing rapid-fire UI updates or Function triggers[4].
+* **Cons:**
+  * **Strict Limits:** Limited to a maximum of **500 operations** per commit/batch[5] and a total payload size under **10 MB**[2].
+  * **All-or-Nothing Risk:** If a single document in the batch fails (e.g., due to a concurrency mismatch or a missing document when a strict precondition is set), the entire operation fails.
+
+---
+
+### Detailed Comparison
+
+| Feature | `Promise.all` (Concurrent REST) | Firestore `:commit` / Batch Write REST API |
+| :--- | :--- | :--- |
+| **HTTP Requests** | $N$ separate requests | 1 single request |
+| **Atomicity** | **None** (Non-atomic, partial failures possible) | **Atomic** (All succeed or all fail)[2] |
+| **Operation Limit** | None enforced by Firestore (limited only by client memory/throttling) | Max **500 writes** per request[5] |
+| **Error Handling** | Partial (some promises reject while others fulfill; requires custom aggregation parsing) | Global (one error code returned for the whole batch) |
+| **Best Used For** | Independent, loosely-coupled cleanups where a partial success is acceptable. | Data integrity tasks where dependencies mean a partial failure breaks business logic[2]. |
+
+---
+
+### Implementation Blueprint: The REST Way
+
+If you choose the **Batch Write** route (recommended for data consistency), your REST payload structure looks like this:
+
+**POST** `https://firestore.googleapis.com/v1/projects/YOUR_PROJECT_ID/databases/(default)/documents:commit`[1]
+
+```json
+{
+  "writes": [
+    {
+      "delete": "projects/YOUR_PROJECT_ID/databases/(default)/documents/collectionA/docId1"
+    },
+    {
+      "update": {
+        "name": "projects/YOUR_PROJECT_ID/databases/(default)/documents/collectionB/docId2",
+        "fields": {
+          "status": { "stringValue": "completed" }
+        }
+      },
+      "updateMask": {
+        "fieldPaths": ["status"]
+      }
+    }
+  ]
+}
+```
+
+### Recommendation
+* Use **Batch Writes (`:commit`)** if your deletions and patches are logically tied together and you require consistency (i.e., if the patch fails, you don't want the deletes to persist)[2].
+* Use **`Promise.all`** *only* if you are processing hundreds/thousands of independent documents spread across chunks where transactional safety doesn't matter, or if you want to bypass the 500-item batch limitation by chunking parallel network calls manually.
+
+Sources:
+[1] [postman.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG3eCIsCUngmTMEZQAKwrL1Y3CcTh4LH3IKCBiGa_-mbLRcL5v85T1HaqDQJrwy8I8f9CFdeLH9csjd4IKv3OAsj4UHp_ChHj8fJCl8wWIblWM70llVis0GYmunF4HYH6gsHtEyAAjwkwjt5LnBu4A8vlXTNFnlUorkJr0OFdHAyMlLkiNR2vtBmrjOx6JwZoW_1m7E-u8LUdY7XdYIJ_zc5C366DJ8)
+[2] [oneuptime.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEEodgGkfjgeNAPOaCv4dPs9XCU4qM5m2vVKksrQUepkrw8bkV0CdzslVl4pnSs9ia4scooD5UE0upZEMdzd6jalHABxvMLCejt5bLaPyuY0EzziJ3x7WcJNdUmv9L_z3nbonlRzyxYqAkCQY2skFnaT4pTtTVLGKZYhEb2epRmlJhUKfuyHvB9oczHGsDfourovI_sBRIXJP1dZoabIV3wKwYTIFEWAp19peT4LATj)
+[3] [googleapis.dev](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGruio6NhBmuFDO2ullnLDk-AqxAF0QvG_r4oQ0pDBOeuvsgHcaytSrwmZV2UlhzzuQTCWLHdkOig2-L40U1QQdrlC4_29AvIPzGPScbzNMtBbrjHpcppek3uH3tixxDcbZ9NhybsxLWs3QeR7BDGn3_D4m-w==)
+[4] [reddit.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFS1wHr2idExVr203Miw3eSgbhXjBgglJZjcDjP1GEY7eWF8Uh_kc5p2N-09aLFnA-rUr_OMhUtBqWsrvpodriZy8AGlqW1QzYHGomxanBKnXxEMyQsPZmzXX-x2Yw5db7pyh27qQGXPYcsFeXEvu8w9hXN1EAU4r5I_Iy3vYqQ1MOT-rqdrqGYQuPkHnp4_UIcVUfolfRKHk0z)
+[5] [rapidevelopers.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGkCWd6pArxfEmTD2lh4463G6GSBgsKEeybdFmFAsUpWOb_YR9bv7LqtkbI48N0M2G8lk65ToITcj5fZLuVJUU4zMZDhiBb8R-Bsqu8gb2VzB4dNVsygj_bUQI18qub0QEo6SlaVX0eKFu7YeWJ7pNE2Buz9Hao-hQY3fNU9pbDKfTmW4NDhg==)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

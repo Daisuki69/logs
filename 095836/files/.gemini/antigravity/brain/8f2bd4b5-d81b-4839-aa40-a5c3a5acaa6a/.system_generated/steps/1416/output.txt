@@ -1,0 +1,51 @@
+Created At: 2026-11-11T06:09:42+08:00
+Completed At: 2026-11-11T06:09:45+08:00
+Command exited with code 0.
+
+Command output:
+=== DB: conversation_summaries.db
+  ('table', 'conversation_summaries', 'CREATE TABLE `conversation_summaries` (`conversation_id` text,`title` text NOT NULL DEFAULT "",`preview` text NOT NULL DEFAULT "",`step_count` integer NOT NULL DEFAULT 0,`last_modified_time` datetime NOT NULL,`workspace_uris` text NOT NULL,`status` text NOT NULL DEFAULT "",`source` text NOT NULL DEFAULT "",`project_id` text NOT NULL DEFAULT "",`agent_name` text NOT NULL DEFAULT "",`parent_conversation_id` text NOT NULL DEFAULT "",`nesting_depth` integer NOT NULL DEFAULT 0,`battle_id` text NOT NULL DEFAULT "",`winning_conversation_id` text NOT NULL DEFAULT "",`not_fully_idle` numeric NOT NULL DEFAULT false,`killed` numeric NOT NULL DEFAULT false,`last_user_input_time` datetime NOT NULL,`last_user_input_step_index` integer NOT NULL DEFAULT -1,`app_data_dir` text NOT NULL DEFAULT "",`raw_summary` blob,`group_id` text NOT NULL DEFAULT "",PRIMARY KEY (`conversation_id`))')
+  ('index', 'idx_conversation_summaries_last_user_input_time', 'CREATE INDEX `idx_conversation_summaries_last_user_input_time` ON `conversation_summaries`(`last_user_input_time`)')
+  ('index', 'idx_conversation_summaries_last_modified_time', 'CREATE INDEX `idx_conversation_summaries_last_modified_time` ON `conversation_summaries`(`last_modified_time`)')
+  ('table', 'search_schema_version', 'CREATE TABLE search_schema_version (\n\t\t\tversion INTEGER PRIMARY KEY\n\t\t)')
+  ('table', 'conversations_fts', "CREATE VIRTUAL TABLE conversations_fts USING fts5(\n\t\t\tconversation_id UNINDEXED,\n\t\t\tchunk_index UNINDEXED,\n\t\t\tchunk_first_step UNINDEXED,\n\t\t\tchunk_last_step UNINDEXED,\n\t\t\tlast_modified_time UNINDEXED,\n\t\t\tstep_count UNINDEXED,\n\t\t\tlast_step_created_at UNINDEXED,\n\t\t\tarchived UNINDEXED,\n\t\t\tuser_step_byte_offsets UNINDEXED,\n\t\t\tagent_step_byte_offsets UNINDEXED,\n\t\t\ttitle,\n\t\t\tworkspace,\n\t\t\tproject,\n\t\t\tuser_body,\n\t\t\tagent_body,\n\t\t\ttokenize = 'unicode61 remove_diacritics 2',\n\t\t\tprefix = '1 2 3'\n\t\t)")
+  ('table', 'conversations_fts_data', "CREATE TABLE 'conversations_fts_data'(id INTEGER PRIMARY KEY, block BLOB)")
+  ('table', 'conversations_fts_idx', "CREATE TABLE 'conversations_fts_idx'(segid, term, pgno, PRIMARY KEY(segid, term)) WITHOUT ROWID")
+  ('table', 'conversations_fts_content', "CREATE TABLE 'conversations_fts_content'(id INTEGER PRIMARY KEY, c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14)")
+  ('table', 'conversations_fts_docsize', "CREATE TABLE 'conversations_fts_docsize'(id INTEGER PRIMARY KEY, sz BLOB)")
+  ('table', 'conversations_fts_config', "CREATE TABLE 'conversations_fts_config'(k PRIMARY KEY, v) WITHOUT ROWID")
+  Table conversation_summaries: total_rows=18
+   cols: ['conversation_id', 'title', 'preview', 'step_count', 'last_modified_time', 'workspace_uris', 'status', 'source', 'project_id', 'agent_name', 'parent_conversation_id', 'nesting_depth', 'battle_id', 'winning_conversation_id', 'not_fully_idle', 'killed', 'last_user_input_time', 'last_user_input_step_index', 'app_data_dir', 'raw_summary', 'group_id']
+   matched rows in conversation_summaries.conversation_id: 1
+  Table search_schema_version: total_rows=1
+   cols: ['version']
+  Table conversations_fts: total_rows=112
+   cols: ['conversation_id', 'chunk_index', 'chunk_first_step', 'chunk_last_step', 'last_modified_time', 'step_count', 'last_step_created_at', 'archived', 'user_step_byte_offsets', 'agent_step_byte_offsets', 'title', 'workspace', 'project', 'user_body', 'agent_body']
+   matched rows in conversations_fts.conversation_id: 10
+  Table conversations_fts_data: total_rows=679
+   cols: ['id', 'block']
+  Table conversations_fts_idx: total_rows=651
+   cols: ['segid', 'term', 'pgno']
+  Table conversations_fts_content: total_rows=112
+   cols: ['id', 'c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10', 'c11', 'c12', 'c13', 'c14']
+  Table conversations_fts_docsize: total_rows=112
+   cols: ['id', 'sz']
+  Table conversations_fts_config: total_rows=1
+   cols: ['k', 'v']
+=== DB: 8f2bd4b5-d81b-4839-aa40-a5c3a5acaa6a.db
+  ('table', 'trajectory_meta', 'CREATE TABLE `trajectory_meta` (`trajectory_id` text,`cascade_id` text,`trajectory_type` integer,`source` integer,PRIMARY KEY (`trajectory_id`))')
+  ('table', 'steps', 'CREATE TABLE `steps` (`idx` integer,`step_type` integer NOT NULL DEFAULT 0,`status` integer NOT NULL DEFAULT 0,`has_subtrajectory` numeric NOT NULL DEFAULT false,`metadata` blob,`error_details` blob,`permissions` blob,`task_details` blob,`render_info` blob,`step_payload` blob,`step_format` integer NOT NULL DEFAULT 0,PRIMARY KEY (`idx`))')
+  ('index', 'idx_steps_status', 'CREATE INDEX `idx_steps_status` ON `steps`(`status`)')
+  ('index', 'idx_steps_step_type', 'CREATE INDEX `idx_steps_step_type` ON `steps`(`step_type`)')
+  ('table', 'gen_metadata', 'CREATE TABLE `gen_metadata` (`idx` integer,`data` blob,`size` integer NOT NULL DEFAULT 0,PRIMARY KEY (`idx`))')
+  ('table', 'executor_metadata', 'CREATE TABLE `executor_metadata` (`idx` integer,`data` blob,PRIMARY KEY (`idx`))')
+  ('table', 'parent_references', 'CREATE TABLE `parent_references` (`idx` integer,`data` blob,PRIMARY KEY (`idx`))')
+  ('table', 'trajectory_metadata_blob', 'CREATE TABLE `trajectory_metadata_blob` (`id` text DEFAULT "main",`data` blob,PRIMARY KEY (`id`))')
+  ('table', 'battle_mode_infos', 'CREATE TABLE `battle_mode_infos` (`idx` integer,`data` blob,PRIMARY KEY (`idx`))')
+  Table trajectory_meta: total_rows=1
+  Table steps: total_rows=1417
+  Table gen_metadata: total_rows=651
+  Table executor_metadata: total_rows=69
+  Table parent_references: total_rows=19
+  Table trajectory_metadata_blob: total_rows=1
+  Table battle_mode_infos: total_rows=0

@@ -1,0 +1,9 @@
+Created At: 2026-11-11T05:54:31+08:00
+Completed At: 2026-11-11T05:54:45+08:00
+Command exited with code 0.
+
+Command output:
+index.html: pre-hardening syntax & audit OK, jsLen=20747
+teacher.html: pre-hardening syntax & audit OK, jsLen=32512
+index.html hardened cleanly: inner= 224841 boot= 13257 totalBytes= 320370
+teacher.html hardened cleanly: inner= 378243 boot= 13544 totalBytes= 528707

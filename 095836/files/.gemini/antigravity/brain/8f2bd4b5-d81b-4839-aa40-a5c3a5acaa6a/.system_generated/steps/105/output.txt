@@ -1,0 +1,49 @@
+Command exited with code 0.
+
+Command output:
+[13952:13716:1109/050342.791:ERROR:chrome\browser\task_manager\providers\fallback_task_provider.cc:126] Every renderer should have at least one task provided by a primary task provider. If a "Renderer" fallback task is shown, it is a bug. If you have repro steps, please file a new bug and tag it as a dependency of crbug.com/739782.
+[13952:13716:1109/050342.927:ERROR:chrome\browser\task_manager\providers\fallback_task_provider.cc:126] Every renderer should have at least one task provided by a primary task provider. If a "Renderer" fallback task is shown, it is a bug. If you have repro steps, please file a new bug and tag it as a dependency of crbug.com/739782.
+[13952:13716:1109/050343.128:ERROR:chrome\browser\task_manager\providers\fallback_task_provider.cc:126] Every renderer should have at least one task provided by a primary task provider. If a "Renderer" fallback task is shown, it is a bug. If you have repro steps, please file a new bug and tag it as a dependency of crbug.com/739782.
+[13952:13716:1109/050343.128:ERROR:chrome\browser\task_manager\providers\fallback_task_provider.cc:126] Every renderer should have at least one task provided by a primary task provider. If a "Renderer" fallback task is shown, it is a bug. If you have repro steps, please file a new bug and tag it as a dependency of crbug.com/739782.
+[13952:13716:1109/050343.139:ERROR:chrome\browser\task_manager\providers\fallback_task_provider.cc:126] Every renderer should have at least one task provided by a primary task provider. If a "Renderer" fallback task is shown, it is a bug. If you have repro steps, please file a new bug and tag it as a dependency of crbug.com/739782.
+[13952:13716:1109/050343.524:ERROR:chrome\browser\task_manager\providers\fallback_task_provider.cc:126] Every renderer should have at least one task provided by a primary task provider. If a "Renderer" fallback task is shown, it is a bug. If you have repro steps, please file a new bug and tag it as a dependency of crbug.com/739782.
+[13952:13716:1109/050343.759:ERROR:components\edge_auth\edge_auth_errors.cc:540] EDGE_IDENTITY: Image Fetch FAILED: Error: Primary Error: kAccountImageFetchFailure, Secondary Error: kUnspecified, Platform error: 0, Error string: [empty]
+
+<!DOCTYPE html>
+<html><head><title>Test Compat</title></head>
+<body>
+<div id="status">COMPAT SUCCESS: C Quiz: Switch Case</div>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+<script>
+  try {
+    const firebaseConfig = {
+      apiKey: "AIzaSyBkqJ9WvtXfGJt19XK7SLK9v5cJwp4EVII",
+      authDomain: "sir-jasper-quiz.firebaseapp.com",
+      projectId: "sir-jasper-quiz",
+      storageBucket: "sir-jasper-quiz.firebasestorage.app",
+      messagingSenderId: "932129654171",
+      appId: "1:932129654171:web:793aa17dd1f130a62f4d3e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    db.collection("quizzes").doc("active").get().then(doc => {
+      if (doc.exists) {
+        document.getElementById("status").textContent = "COMPAT SUCCESS: " + doc.data().title;
+        console.log("SUCCESS:", doc.data().title);
+      } else {
+        document.getElementById("status").textContent = "COMPAT NOT FOUND";
+      }
+    }).catch(err => {
+      document.getElementById("status").textContent = "COMPAT ERROR: " + err.message;
+      console.error(err);
+    });
+  } catch (e) {
+    document.getElementById("status").textContent = "CATCH ERROR: " + e.message;
+  }
+</script>
+
+
+</body></html>

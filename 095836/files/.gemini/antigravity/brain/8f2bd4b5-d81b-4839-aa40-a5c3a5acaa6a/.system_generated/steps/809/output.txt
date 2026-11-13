@@ -1,0 +1,15 @@
+Command exited with code 1.
+
+Command output:
+[eval]:1
+const fs = require('fs'); const t = fs.readFileSync('teacher.html', 'utf8'); console.log('warn style:', t.includes('.warn{position:fixed;inset:0')); console.log('confirm-modal exists:', t.includes('id=" confirm-modal\'));
+                                                                                                                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^
+Expected ',', got '<eof>'
+
+SyntaxError: Invalid or unexpected token
+    at makeContextifyScript (node:internal/vm:185:14)
+    at compileScript (node:internal/process/execution:383:10)
+    at evalTypeScript (node:internal/process/execution:256:22)
+    at node:internal/main/eval_string:74:3
+
+Node.js v22.22.0

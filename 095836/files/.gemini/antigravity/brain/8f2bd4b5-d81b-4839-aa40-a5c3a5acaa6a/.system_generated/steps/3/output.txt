@@ -1,0 +1,13 @@
+Command exited with code 0.
+
+Command output:
+
+
+    Directory: C:\Users\CxAdmin\Desktop\Exploit
+
+
+Mode                 LastWriteTime         Length Name                                                                 
+----                 -------------         ------ ----                                                                 
+-a----        08/11/2026  10:18 pm          16327 QUIZ06 (1) (1).html                                                  
+
+

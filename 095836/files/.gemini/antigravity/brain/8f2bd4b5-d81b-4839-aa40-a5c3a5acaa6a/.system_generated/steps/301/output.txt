@@ -1,0 +1,22 @@
+Command exited with code 0.
+
+Command output:
+
+  index.html:536:        t: Math.round((Date.now() - startedAt) / 1000)
+  index.html:537:      };
+  index.html:538:      rec.code = btoa(unescape(encodeURIComponent(JSON.stringify(rec))));
+  index.html:539:      if (db) {
+  index.html:540:        try {
+> index.html:541:          db.collection("quizzes").doc(quizId).collection("submissions").add({
+  index.html:542:            ...rec,
+  index.html:543:            submittedAt: Date.now()
+  index.html:544:          });
+  index.html:545:        } catch (e) { }
+  index.html:546:      }
+  index.html:547:      try {
+  index.html:548:        const all = JSON.parse(localStorage.getItem('ds_exam_results') || '[]');
+  index.html:549:        all.push(rec);
+  index.html:550:        localStorage.setItem('ds_exam_results', JSON.stringify(all));
+  index.html:551:      } catch (e) { }
+
+

@@ -1,0 +1,12 @@
+CUTOVER_OK
+verified_files=6867
+conv_db_integrity=ok
+steps_count=2680
+max_idx=2679
+sum_db_integrity=ok
+total_conversations=18
+summary_row=('Firebase Quiz App Builder', 2680, '["file:///c%3A/Users/CxAdmin/Desktop/Exploit"]', 'CASCADE_RUN_STATUS_IDLE', 0)
+fts_rows=18
+fts_match_firebase=True
+fts_match_tamper=True
+stage_removed=True

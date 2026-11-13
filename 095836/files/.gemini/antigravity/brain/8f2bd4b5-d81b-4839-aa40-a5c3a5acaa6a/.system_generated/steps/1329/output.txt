@@ -1,0 +1,13 @@
+Created At: 2026-11-11T05:56:22+08:00
+Completed At: 2026-11-11T05:56:31+08:00
+Command exited with code 1.
+
+Command output:
+C:\Users\CxAdmin\.gemini\antigravity\brain\8f2bd4b5-d81b-4839-aa40-a5c3a5acaa6a\scratch\obf_tool\verify_dashboard.cjs:195
+    throw new Error('Expected initial Load Quiz 1 & Load Quiz 2 rows, got: ' + rows1.map(r => r.children[0].textContent));
+          ^
+
+Error: Expected initial Load Quiz 1 & Load Quiz 2 rows, got: Load Quiz 1,Load Quiz 2,Load Quiz 1,Load Quiz 2
+    at C:\Users\CxAdmin\.gemini\antigravity\brain\8f2bd4b5-d81b-4839-aa40-a5c3a5acaa6a\scratch\obf_tool\verify_dashboard.cjs:195:11
+
+Node.js v22.22.0

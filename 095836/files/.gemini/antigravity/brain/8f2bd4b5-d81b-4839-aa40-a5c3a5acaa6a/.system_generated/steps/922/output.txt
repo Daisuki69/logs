@@ -1,0 +1,154 @@
+Created At: 2026-11-11T04:55:07+08:00
+Completed At: 2026-11-11T04:55:19+08:00
+The search for "self decrypting html javascript eval cipher payload offline browser file protocol" returned the following summary:
+A **self-decrypting HTML payload** running via the local `file://` protocol relies entirely on client-side execution. Because it operates completely offline without a backend server, it packages an encrypted data payload alongside a plain JavaScript bootstrap routine[1][2]. When loaded into a browser, the bootstrap script decrypts the payload in memory and injects or executes it[3].
+
+---
+
+### Core Mechanics
+
+1. **The Wrapper (HTML + JS):** A clean structural wrapper containing minimal bootstrap JavaScript[3].
+2. **The Ciphertext:** The core payload (HTML, JavaScript, or application code) encoded and encrypted using a symmetric cipher (e.g., AES-GCM) stored directly inside a `<script>` or `<template>` tag[2].
+3. **The Key / Password:** Can be hardcoded into the bootstrap script (for obfuscation/local-only defense) or prompted from the user via a password box at runtime[2].
+4. **The Execution (`eval` / DOM Injection):** Once decrypted in memory, the payload is dynamically written to the DOM or executed via `eval()` / `Function()` constructor execution blocks[3].
+
+---
+
+### Conceptual Code Architecture
+
+Below is a proof-of-concept demonstrating how a standalone HTML file can use the modern browser **Web Crypto API** (`crypto.subtle`) and AES-GCM to self-decrypt and execute an encrypted payload offline, triggered locally via the `file://` protocol.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Self-Decrypting Offline Container</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: #e0e0e0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #loader { text-align: center; }
+        input, button { padding: 10px; margin-top: 10px; background: #222; border: 1px solid #444; color: #fff; border-radius: 4px; }
+        button { cursor: pointer; background: #333; }
+        button:hover { background: #444; }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <h3>Protected Content</h3>
+        <p>Enter decryption passphrase:</p>
+        <input type="password" id="password" placeholder="Passphrase" />
+        <br>
+        <button onclick="decryptPayload()">Decrypt & Execute</button>
+        <p id="error" style="color: #ff6b6b;"></p>
+    </div>
+
+    <div id="content" style="display:none;"></div>
+
+    <script>
+        // --- CONFIGURATION & EMBEDDED CIPHERTEXT ---
+        // In a real build pipeline, these variables are populated automatically.
+        // Below are placeholders representing base64-encoded cryptographic parameters.
+        
+        const saltB64 = "MOCK_BASE64_SALT_DATA";
+        const ivB64 = "MOCK_BASE64_IV_DATA";
+        const ciphertextB64 = "MOCK_BASE64_CIPHERTEXT_DATA";
+
+        // Helper: Convert Base64 to Uint8Array
+        function base64ToArrayBuffer(base64) {
+            const binary_string = window.atob(base64);
+            const len = binary_string.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binary_string.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        async function deriveKey(password, salt) {
+            const enc = new TextEncoder();
+            const keyMaterial = await window.crypto.subtle.importKey(
+                "raw",
+                enc.encode(password),
+                { name: "PBKDF2" },
+                false,
+                ["deriveKey"]
+            );
+            return window.crypto.subtle.deriveKey(
+                {
+                    name: "PBKDF2",
+                    salt: salt,
+                    iterations: 100000,
+                    hash: "SHA-256"
+                },
+                keyMaterial,
+                { name: "AES-GCM", length: 256 },
+                false,
+                ["decrypt"]
+            );
+        }
+
+        async function decryptPayload() {
+            const password = document.getElementById('password').value;
+            const errorElement = document.getElementById('error');
+            errorElement.textContent = "";
+
+            try {
+                const salt = base64ToArrayBuffer(saltB64);
+                const iv = base64ToArrayBuffer(ivB64);
+                const data = base64ToArrayBuffer(ciphertextB64);
+
+                const key = await deriveKey(password, salt);
+
+                // Decrypt using Web Crypto API
+                const decryptedArrayBuffer = await window.crypto.subtle.decrypt(
+                    { name: "AES-GCM", iv: iv },
+                    key,
+                    data
+                );
+
+                const decoder = new TextDecoder();
+                const decryptedCode = decoder.decode(decryptedArrayBuffer);
+
+                // Clean up UI wrapper
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+
+                // --- EXECUTION PHASE ---
+                // Option A: If the payload is dynamic HTML/DOM structures
+                // document.getElementById('content').innerHTML = decryptedCode;
+
+                // Option B: If the payload demands code evaluation / script execution
+                // Using an explicit function wrapper or direct eval safely bound inside scope:
+                const runScript = new Function(decryptedCode);
+                runScript();
+
+            } catch (err) {
+                console.error(err);
+                errorElement.textContent = "Decryption failed. Incorrect password or corrupted payload.";
+            }
+        }
+    </script>
+</body>
+</html>
+```
+
+---
+
+### Important Limitations Under the `file://` Protocol
+
+When designing self-decrypting packages targeted at offline execution via the local file system (`file://`), browsers apply strict security boundaries:
+
+1. **CORS Restrictions on Local Imports:** 
+   You cannot use external `fetch()` calls, external scripts (`<script src="...">`), or local module imports (`import ... from ...`) relative to the file path in most modern browsers. **The file must remain entirely monolithic (self-contained)**, embedding all code, styles, and data inline.
+2. **Web Crypto API Requirements:** 
+   The `window.crypto.subtle` library functions natively inside offline contexts (`file://`) across most modern browsers (Chrome, Firefox, Edge, Safari), meaning robust modern cryptography (AES-GCM, PBKDF2) is fully operational without requiring an HTTP/HTTPS web server context.
+3. **Content Security Policy (CSP) & `eval()`:** 
+   If local HTML files are forced to parse raw strings via `eval()` or dynamic `Function` instantiations after runtime decryption, strict local browser configurations or enterprise policies might occasionally flag or block execution if a restrictive meta-CSP is applied. However, native single-file dynamic DOM writing (`element.innerHTML` or creating script elements dynamically via `document.createElement('script')`) usually bypasses static heuristic blocks because the malicious or sensitive source code is not exposed natively in the initial raw text layout of the document.
+
+Sources:
+[1] [github.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQH50NnA5jetEO2o7b8JYV9cTYnIT0JNPQgWwLbrwc6Hv3BN5Dk0rZus8apn52_N-HqGZNTaPGaFlyaxSBVyLWnNSKVawtlVYF9wgDpXzQ7uoXToU-nXvO3NmAkj4zvBViAgVdM5oi8Hy3bXPqo=)
+[2] [github.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG1WlwkIzmNg_1A686KtvA3jIAOjn67tHI08whonIBCVXPyC33lj0W0jIFVRQjpNjhavHNBX7XLUXKrG4daEUOVLPuUMULwSyUsfhLFxzzm7vuol77bDWWERQg1TyrTlQ==)
+[3] [html-code-generator.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHoWiwuhzxNCi-FzYJ1pCIUFdZPow1bJrcrUR3jyVOsNyv6m2qhoYeXQtZhmkhulK9iTlQpzXDsVjAW27H6S6ydgCeCVNZozalCBPnlAwHGgJy-b7aUJcKx7IumtJ34NpEO6su30mn3xfC-8epu-64eIBOfIw==)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

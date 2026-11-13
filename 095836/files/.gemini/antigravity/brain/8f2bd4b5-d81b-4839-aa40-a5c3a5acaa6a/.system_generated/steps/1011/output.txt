@@ -1,0 +1,49 @@
+Created At: 2026-11-11T05:15:26+08:00
+Completed At: 2026-11-11T05:15:31+08:00
+The search for "firestore rest api patch updateMask document create if missing" returned the following summary:
+In the Cloud Firestore REST API, the `PATCH` method (`projects.databases.documents.patch`) acts natively as an **upsert**[1]. 
+
+By default, sending a `PATCH` request to a document path will **create the document if it is missing**, or **update it if it already exists**[1].
+
+Depending on whether you want to **merge/update specific fields** or **overwrite the whole document** on creation/update, behavior is managed using the `updateMask` parameter[2]:
+
+---
+
+### Behavior Matrix
+1. **With `updateMask` (Upsert + Merge):** 
+   If the document *doesn't exist*, it creates it using only the fields specified in the mask. If it *does exist*, it updates only those specific fields and leaves other existing fields untouched[2].
+2. **Without `updateMask` (Upsert + Overwrite):** 
+   If the document *doesn't exist*, it creates it. If it *does exist*, it completely replaces/overwrites the entire document with the payload provided[2].
+
+---
+
+### Example Request (`curl`)
+
+This example demonstrates how to perform a patched upsert (`create if missing` or `update if present`) targeting specific fields using `updateMask.fieldPaths`[3][1]:
+
+```bash
+curl -X PATCH \
+"https://firestore.googleapis.com/v1/projects/YOUR_PROJECT_ID/databases/(default)/documents/users/user123?updateMask.fieldPaths=name&updateMask.fieldPaths=status" \
+-H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+-H "Content-Type: application/json" \
+-d '{
+  "fields": {
+    "name": { "stringValue": "Alice" },
+    "status": { "stringValue": "active" },
+    "ignoredField": { "stringValue": "This will not be written because it is missing from the updateMask" }
+  }
+}'
+```
+
+### Key Considerations:
+* **No Preconditions Needed:** Do **not** pass `currentDocument.exists=true` in the query string if you want it to create the document when missing. Setting `currentDocument.exists=true` forces a strict requirement that the document must already exist, which will return a `NOT_FOUND` error if it doesn't[3][4].
+* **Field Path Syntax:** Each field you want to create/update must be explicitly registered as a query parameter using `updateMask.fieldPaths=fieldName`[5].
+
+Sources:
+[1] [google.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEXtuW8bfj6oAaJc_5_yRZd0xnvPyAHCQMuML5w4cEnQsNXbg7cYqmOGwD5UkuNRQDH9b3PEY7L38KshgmNr59eXd0OaKZJXVgiCph60vN_aQXdq98_DsDEw3pyHgRyuN9fMldWFQLyz_Y-ONhKk_0ZvJOpP50Syc_QozCTha7fzK6vhLdS4fX9JVl-B9B_wWVJSpVW)
+[2] [google.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE7irSsfgINDRApK97ub12kBtQb0pCTGvel6bmrHbWEfAYDZIq2EIHp-5ntiSo4mLVaqAuPZzrN07SkVavFqnngtvIWvPsivOfRBNSX9EUT2cN5Xyk_lL4YAIxusUotv7IrQ8FuZOHwSg-5hoz7YRcd-R0xSVcQEia7jNcD)
+[3] [google.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQG9AFc4cbqAwLrjJeB1P9zDwO5lUl51IWG_vnu00VVGFyJo5h5XpRm_wAlnSxcyoan-1Jr1utYhbZvtThu9GvwM_fYPEayZIeVB_r8PxHHVKupPc3V0qVdvNC1v-_AFMNbiNqUQEtYDkjqGenS0x7dkGhxNfhzavdahktm3AtbbliyCEj4JKDudbT69HzNBdLgMkkINnMHD7ZumlFsMBaEFy8KZ12rh)
+[4] [google.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGKBSmKf3MZRfNI2lc0KuCCp3-vQ5MCPFL78EB25CYsoKQmu2qsDRZSV9gApwn-zHgzCkZF_suZsCT3E_7zLbtvBzrYp2sCXhwk9YjEWvqTiM8AssWH8bI9mwn3SZcwF91ETYIEsgO5ABheipUS)
+[5] [stackoverflow.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHR-RQJCWFIfgjxYSz9Y1pqJNp2Wf8WAIHokgLeWOmq5BPsbj1LyljeZfV40Vxy1vdO92b864yC-xm8F-T-Ts91XQVHVfALoR94_MDtqVAbOe_b26Oc6eq32RSLwHf_6B4B3IEDY1isXtGIcTBk94NIaewqFnX5wX2gsO1xayexvDew6NUpZDPFpiKhGba1fZqqig==)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

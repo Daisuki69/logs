@@ -1,0 +1,195 @@
+Created At: 2026-11-11T05:35:56+08:00
+Completed At: 2026-11-11T05:36:02+08:00
+The search for "Firestore REST API stop unnecessary polling conditional feature toggle vanilla JS" returned the following summary:
+To efficiently control, toggle, and completely halt unnecessary network requests or polling loops when using the **Firestore REST API** in vanilla JavaScript, you need a robust implementation pattern. 
+
+Because the raw Firestore REST API doesn't support persistent WebSockets/real-time streams out-of-the-box in standard browser environments (unlike the Firebase SDK's `onSnapshot`)[1], developers often rely on custom `setInterval` loops or recursive `setTimeout` pollers. If left unchecked, these can drain resources and rack up unnecessary database reads.
+
+The following production-ready Vanilla JS solution implements:
+1. **A Conditional Feature Toggle** (to switch polling on/off dynamically).
+2. **AbortController Support** (to instantly cancel pending in-flight HTTP requests).
+3. **Visibility API Awareness** (automatically pauses polling when the user minimizes or switches tabs, preventing background waste).
+
+### Vanilla JavaScript Implementation
+
+```javascript
+class FirestoreRestPoller {
+  constructor(config) {
+    this.projectId = config.projectId;
+    this.collection = config.collection;
+    this.apiKey = config.apiKey;
+    this.intervalMs = config.intervalMs || 10000; // Default: 10 seconds
+
+    this.timerId = null;
+    this.abortController = null;
+    
+    // 1. Conditional Feature Toggle State
+    this._isFeatureEnabled = config.initialState ?? true;
+
+    // Bind context
+    this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
+    
+    // Initialize tab visibility listener to prevent background polling waste
+    document.addEventListener("visibilitychange", this.handleVisibilityChange);
+    
+    // Evaluate initial state
+    this.evaluatePollingState();
+  }
+
+  /**
+   * Getter & Setter for the Feature Toggle
+   */
+  get isEnabled() {
+    return this._isFeatureEnabled;
+  }
+
+  set isEnabled(val) {
+    if (this._isFeatureEnabled !== val) {
+      this._isFeatureEnabled = val;
+      console.log(`[Poller] Feature toggle changed to: ${val}`);
+      this.evaluatePollingState();
+    }
+  }
+
+  /**
+   * Core logic to decide whether polling should be running or stopped
+   */
+  evaluatePollingState() {
+    const shouldPoll = this._isFeatureEnabled && !document.hidden;
+
+    if (shouldPoll) {
+      this.start();
+    } else {
+      this.stop("Paused due to feature toggle or tab inactivity.");
+    }
+  }
+
+  /**
+   * Starts the polling loop if not already running
+   */
+  start() {
+    if (this.timerId) return; // Already running
+
+    console.log("[Poller] Starting polling loop...");
+    
+    // Execute immediately on start, then loop
+    this.fetchData();
+    
+    this.timerId = setInterval(() => {
+      this.fetchData();
+    }, this.intervalMs);
+  }
+
+  /**
+   * Stops the polling loop and cancels any active network request instantly
+   */
+  stop(reason = "Manual stop") {
+    if (this.timerId) {
+      clearInterval(this.timerId);
+      this.timerId = null;
+      console.log(`[Poller] Stopped. Reason: ${reason}`);
+    }
+
+    // Instantly kill any pending HTTP fetch request
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
+    }
+  }
+
+  /**
+   * Handles browser tab visibility changes
+   */
+  handleVisibilityChange() {
+    this.evaluatePollingState();
+  }
+
+  /**
+   * Fetch data using the Firestore REST API
+   */
+  async fetchData() {
+    // Create a new AbortController for this specific request cycle
+    this.abortController = new AbortController();
+
+    const url = `https://firestore.googleapis.com/v1/projects/${this.projectId}/databases/(default)/documents/${this.collection}?key=${this.apiKey}`;
+
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        signal: this.abortController.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      this.onData(data);
+    } catch (error) {
+      if (error.name === "AbortError") {
+        console.log("[Poller] Fetch request was cleanly aborted.");
+      } else {
+        console.error("[Poller] Fetch error:", error);
+        this.onError(error);
+      }
+    }
+  }
+
+  /**
+   * Override or hook into this method to handle incoming data
+   */
+  onData(data) {
+    console.log("[Poller] Data received:", data);
+  }
+
+  /**
+   * Override or hook into this method to handle errors
+   */
+  onError(error) {
+    // Handle error UI states here if necessary
+  }
+
+  /**
+   * Completely teardown listeners and polling (e.g., component unmount)
+   */
+  destroy() {
+    this.stop("Destroyed");
+    document.removeEventListener("visibilitychange", this.handleVisibilityChange);
+  }
+}
+
+// ==========================================
+// EXAMPLE USAGE:
+// ==========================================
+
+const dbPoller = new FirestoreRestPoller({
+  projectId: "your-firebase-project-id",
+  collection: "todos",
+  apiKey: "your-web-api-key",
+  intervalMs: 15000, // Poll every 15 seconds
+  initialState: true // Feature toggle starts enabled
+});
+
+// Override data handler to update your Vanilla JS UI
+dbPoller.onData = (response) => {
+  const documents = response.documents || [];
+  document.getElementById("status").innerText = `Loaded ${documents.length} docs at ${new Date().toLocaleTimeString()}`;
+};
+
+// --- Controlling via Feature Toggle UI ---
+const toggleSwitch = document.getElementById("featureToggleCheckbox");
+
+toggleSwitch.addEventListener("change", (event) => {
+  // Dynamically halts or resumes polling matching the feature flag state
+  dbPoller.isEnabled = event.target.checked;
+});
+```
+
+### Key Architectural Benefits:
+* **Zero Resource Leaks:** When `dbPoller.isEnabled = false` is triggered, it clears the JavaScript `setInterval` thread *and* invokes `abortController.abort()` to cancel network threads hanging on a database socket response.
+* **Visibility Optimization:** Browsers throttle background tabs differently. By listening to `visibilitychange`, the script proactively halts outbound REST requests when users navigate away, preventing wasted Firestore read billing quotas.
+
+Sources:
+[1] [stackoverflow.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGcZfeP6l8A0SpTpZ3aBkExujf15ePuyl0yCA4VQ_-xrBA7bjB3R8aQ6tsJqdpDgoiE9w0FsPJu3Ea0cBcYqY-6DijRK1PJ0U6GaGe0Yjp5bC9moh3dNjIhW4Jg-FKUP8ddfQScGkUCnUe6owNo5WnwatVVo0WaxNF-LJ01SSrqeI4fn6a81eH6NxblDiLJl1M47ifDYQ==)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

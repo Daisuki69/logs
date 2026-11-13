@@ -1,0 +1,74 @@
+Command exited with code 0.
+
+Command output:
+{
+  "settings": {
+    "mapValue": {
+      "fields": {
+        "timePerQuestion": {
+          "integerValue": "20"
+        },
+        "tabViolationPenalty": {
+          "integerValue": "1"
+        },
+        "randomizeAnswers": {
+          "booleanValue": true
+        },
+        "randomizeQuestions": {
+          "booleanValue": true
+        },
+        "enableTabViolation": {
+          "booleanValue": true
+        },
+        "enableTimer": {
+          "booleanValue": true
+        }
+      }
+    }
+  },
+  "updatedAt": {
+    "integerValue": "1794176271463"
+  },
+  "questions": {
+    "arrayValue": {
+      "values": [
+        {
+          "mapValue": {
+            "fields": {
+              "q": {
+                "stringValue": "s"
+              },
+              "correct": {
+                "stringValue": "s"
+              },
+              "wrongs": {
+                "arrayValue": {
+                  "values": [
+                    {
+                      "stringValue": "ws"
+                    },
+                    {
+                      "stringValue": "df"
+                    },
+                    {
+                      "stringValue": "sdd"
+                    }
+                  ]
+                }
+              },
+              "explanation": {
+                "stringValue": "sd"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "title": {
+    "stringValue": "C Programming: Switch Case Quizasdasdsss"
+  },
+  "description": {
+    "stringValue": "20 items • 20 seconds per question • Anti-cheat active"
+  }
+}

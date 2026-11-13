@@ -1,0 +1,210 @@
+Created At: 2026-11-10T12:38:29+08:00
+Completed At: 2026-11-10T12:38:42+08:00
+The search for "web crypto api aes-gcm encrypt decrypt json embedded static html javascript" returned the following summary:
+Here is a complete, self-contained single-file HTML/JavaScript solution. It uses the native **Web Crypto API** (`window.crypto.subtle`) to encrypt and decrypt **JSON objects** using **AES-GCM** (256-bit) derived from a user-provided password via **PBKDF2**[1].
+
+Save the code below as an `.html` file (e.g., `index.html`) and open it directly in any modern browser.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Crypto API: AES-GCM JSON Encrypt/Decrypt</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; color: #333; }
+        textarea { width: 100%; height: 100px; font-family: monospace; padding: 8px; box-sizing: border-box; }
+        input[type="password"], input[type="text"] { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
+        button { background: #0066cc; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; margin-right: 5px; }
+        button:hover { background: #0052a3; }
+        .section { margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 6px; border: 1px solid #ddd; }
+        label { font-weight: bold; display: block; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+    <h2>Web Crypto API: AES-GCM JSON Encrypt / Decrypt</h2>
+
+    <div class="section">
+        <label for="password">Secret Password:</label>
+        <input type="password" id="password" value="SuperSecret123!" placeholder="Enter encryption password">
+    </div>
+
+    <div class="section">
+        <label for="jsonInput">JSON Input (Object):</label>
+        <textarea id="jsonInput">{
+  "user": "Alice",
+  "id": 98765,
+  "roles": ["admin", "user"],
+  "active": true
+}</textarea>
+        <button onclick="handleEncrypt()">Encrypt JSON</button>
+    </div>
+
+    <div class="section">
+        <label for="cipherOutput">Encrypted Output (Base64 Payload):</label>
+        <textarea id="cipherOutput" placeholder="Encrypted string will appear here..."></textarea>
+        <button onclick="handleDecrypt()">Decrypt to JSON</button>
+    </div>
+
+    <div class="section">
+        <label for="jsonOutput">Decrypted JSON Result:</label>
+        <textarea id="jsonOutput" placeholder="Decrypted JSON object will appear here..."></textarea>
+    </div>
+
+<script>
+    // --- Helper Utilities for Base64 & ArrayBuffer conversions ---
+    function bufferToBase64(buffer) {
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+    }
+
+    function base64ToBuffer(base64) {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes.buffer;
+    }
+
+    // --- Core Crypto Functions ---
+
+    // Derive an AES-GCM key from a password string + salt using PBKDF2
+    async function deriveKey(password, salt, keyUsage) {
+        const enc = new TextEncoder();
+        const baseKey = await crypto.subtle.importKey(
+            "raw",
+            enc.encode(password),
+            { name: "PBKDF2" },
+            false,
+            ["deriveKey"]
+        );
+
+        return await crypto.subtle.deriveKey(
+            {
+                name: "PBKDF2",
+                salt: salt,
+                iterations: 100_000,
+                hash: "SHA-256"
+            },
+            baseKey,
+            { name: "AES-GCM", length: 256 },
+            false,
+            [keyUsage]
+        );
+    }
+
+    // Encrypts a JavaScript Object into a single Base64 string payload
+    async function encryptJSON(jsonObject, password) {
+        const jsonString = JSON.stringify(jsonObject);
+        const encoder = new TextEncoder();
+        const encodedData = encoder.encode(jsonString);
+
+        // Generate cryptographically secure random salt (16 bytes) and IV (12 bytes)
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+
+        const key = await deriveKey(password, salt, "encrypt");
+
+        // Perform AES-GCM encryption
+        const ciphertext = await crypto.subtle.encrypt(
+            { name: "AES-GCM", iv: iv },
+            key,
+            encodedData
+        );
+
+        // Combine salt (16) + iv (12) + ciphertext into a single ArrayBuffer package
+        const combined = new Uint8Array(salt.byteLength + iv.byteLength + ciphertext.byteLength);
+        combined.set(salt, 0);
+        combined.set(iv, salt.byteLength);
+        combined.set(new Uint8Array(ciphertext), salt.byteLength + iv.byteLength);
+
+        return bufferToBase64(combined.buffer);
+    }
+
+    // Decrypts a Base64 payload back into a JavaScript Object
+    async function decryptJSON(base64Payload, password) {
+        const combined = new Uint8Array(base64ToBuffer(base64Payload));
+
+        // Extract salt, iv, and ciphertext based on fixed byte lengths
+        const salt = combined.slice(0, 16);
+        const iv = combined.slice(16, 28);
+        const ciphertext = combined.slice(28);
+
+        const key = await deriveKey(password, salt, "decrypt");
+
+        // Perform AES-GCM decryption (throws error if tampered or password is wrong)
+        const decryptedBuffer = await crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: iv },
+            key,
+            ciphertext
+        );
+
+        const decoder = new TextDecoder();
+        const jsonString = decoder.decode(decryptedBuffer);
+        
+        return JSON.parse(jsonString);
+    }
+
+    // --- UI Event Handlers ---
+
+    async function handleEncrypt() {
+        try {
+            const rawText = document.getElementById('jsonInput').value;
+            // Validate JSON format prior to encryption
+            const jsonObject = JSON.parse(rawText); 
+            const password = document.getElementById('password').value;
+
+            if (!password) {
+                alert('Please enter a password.');
+                return;
+            }
+
+            const base64Token = await encryptJSON(jsonObject, password);
+            document.getElementById('cipherOutput').value = base64Token;
+            document.getElementById('jsonOutput').value = ''; // clear previous result
+        } catch (err) {
+            alert('Encryption failed: ' + err.message);
+            console.error(err);
+        }
+    }
+
+    async function handleDecrypt() {
+        try {
+            const base64Token = document.getElementById('cipherOutput').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!base64Token || !password) {
+                alert('Please provide both an encrypted payload and a password.');
+                return;
+            }
+
+            const jsonObject = await decryptJSON(base64Token, password);
+            // Pretty-print decrypted JSON back into the textarea
+            document.getElementById('jsonOutput').value = JSON.stringify(jsonObject, null, 2);
+        } catch (err) {
+            alert('Decryption failed! Invalid password or corrupted/tampered data.');
+            console.error(err);
+        }
+    }
+</script>
+
+</body>
+</html>
+```
+
+### Key Design Aspects:
+1. **Authenticated Encryption (AES-GCM):** AES-GCM provides integrity checking[1]. If an attacker modifies even a single character of the ciphertext, or if the wrong password is entered, decryption will automatically fail and throw a cryptographic error.
+2. **Key Derivation (PBKDF2):** Instead of using the raw text string directly as an AES key, it uses **PBKDF2-SHA-256** with 100,000 iterations to safely generate a robust 256-bit encryption key from your password[1].
+3. **Packaging Salt & IV:** AES-GCM requires a unique random IV (Initialization Vector) for every single encryption[1], and PBKDF2 requires a random `salt`. This script packs the random **Salt (16 bytes)**, **IV (12 bytes)**, and the **Ciphertext** together into a single byte array before converting it to Base64[1]. This guarantees that decoding has immediate, self-contained access to everything it needs.
+
+Sources:
+[1] [mojoauth.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEs9T0W6Xp0MdWd8u6DB1OZTbEWT73rqk_1ZrbVRxpG1qu_x2utG-X8W4rjWnJz-7Y6ST71CkOyasUdZKa1zyNmoeU2q0b-QuJm8aCJ3uqk_FUphFjH2QrUj5dX3xO2YUVAp7QezlicOZm_892ewOcqg-lG11Pc90mKH74_jkVAOhdthv0=)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

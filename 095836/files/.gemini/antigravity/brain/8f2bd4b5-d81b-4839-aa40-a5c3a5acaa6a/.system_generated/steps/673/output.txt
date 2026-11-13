@@ -1,0 +1,7 @@
+Command exited with code 0.
+
+Command output:
+tab-btn-editor exists: true
+tab-btn-sub exists: true
+view-editor exists: true
+view-sub exists: true

@@ -1,0 +1,122 @@
+Created At: 2026-11-10T12:38:29+08:00
+Completed At: 2026-11-10T12:38:35+08:00
+The search for "vercel serverless function api proxy firestore hide firebase config client html" returned the following summary:
+If you want to serve a static HTML/JS frontend from Vercel while completely removing the Firebase configuration (`apiKey`, `projectId`, etc.) from the client-side browser, you cannot use the standard Firebase Web SDK directly in your HTML[1][2]. 
+
+Instead, you need to use **Vercel Serverless Functions** as an **API Proxy**[2][3]. Your client-side HTML will talk to your own Vercel endpoints (e.g., `/api/get-data`), and Vercel will use the **Firebase Admin SDK** (secured via hidden environment variables) to talk to Firestore.
+
+Here is a step-by-step implementation guide.
+
+---
+
+### Step 1: Set up Environment Variables on Vercel
+Never hardcode your credentials. Firebase Admin SDK requires a service account. 
+1. Go to your Firebase Console -> Project Settings -> Service Accounts.
+2. Click **Generate New Private Key** and download the JSON file.
+3. In your Vercel Project Dashboard, go to **Settings > Environment Variables** and add your credentials securely[4]:
+   * `FIREBASE_PROJECT_ID` = `your-project-id`
+   * `FIREBASE_CLIENT_EMAIL` = `your-service-account-email`
+   * `FIREBASE_PRIVATE_KEY` = `-----BEGIN PRIVATE KEY-----\nYour-PrivateKey...\n-----END PRIVATE KEY-----\n` *(Make sure to keep the newline characters format intact)*
+
+---
+
+### Step 2: Create a Vercel Serverless Function (API Proxy)
+Create a folder structure in your project root called `api/`. Inside it, create a file named `firestore-proxy.js` (or `route.ts` if using Next.js)[5]. 
+
+This function initializes Firebase on the **server side**, meaning the keys never reach the client[3].
+
+```javascript
+// api/firestore-proxy.js
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+
+// Initialize Firebase Admin only once
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      // Replace escaped newlines if stored as a single-line string in env vars
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    }),
+  });
+}
+
+const db = getFirestore();
+
+export default async function handler(req, res) {
+  // Optional: restrict methods (e.g., only allow GET)
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    // Example: Fetching documents from a Firestore collection named 'products'
+    const snapshot = await db.collection('products').get();
+    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.h("Firestore Error:", error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+}
+```
+
+---
+
+### Step 3: Consume via Client-Side HTML/JS
+In your static HTML file (`public/index.html` or root html file), you no longer need any Firebase libraries or configuration objects. Instead, you just fetch your own Vercel serverless endpoint[2][3]:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Firestore Proxy Example</title>
+</head>
+<body>
+    <h1>Products from Firestore</h1>
+    <div id="product-list">Loading...</div>
+
+    <script>
+        async function fetchProducts() {
+            try {
+                // Call your Vercel Serverless function
+                const response = await fetch('/api/firestore-proxy');
+                const result = await response.json();
+
+                if (result.success) {
+                    const container = document.getElementById('product-list');
+                    container.innerHTML = JSON.stringify(result.data, null, 2);
+                } else {
+                    document.getElementById('product-list').innerText = 'Failed to load data.';
+                }
+            } catch (err) {
+                console.error('Error fetching data:', err);
+            }
+        }
+
+        fetchProducts();
+    </script>
+</body>
+</html>
+```
+
+---
+
+### Alternative: What if you *must* use the Firebase Web SDK Client-side?
+If you are using features that *require* the client SDK (like real-time Firestore listeners `onSnapshot` or client-side Google/Email Authentication popups), **you cannot completely hide the Firebase Web Config (`apiKey`, `authDomain`, etc.)**[1][2]. 
+
+Google and Firebase design these web configuration keys to be public[1][2]. To protect your Firestore database when using client-side SDKs, security relies entirely on:
+1. **Firestore Security Rules:** Writing strict rule logic (`allow read, write: if request.auth != null;`) so that even if someone steals the config keys, they cannot bypass your authorization logic[1].
+2. **Firebase App Check:** Prevents unauthorized apps/scripts from abusing your API keys by enforcing token attestation (using reCAPTCHA Enterprise or Play Integrity).
+
+Sources:
+[1] [reddit.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHDpOwI1pRW1etTArK41EfO7jB9tshtQTM0bFvnkD_pwK0rQaepx5CzvuqGVRefHyMO4bNcm-G4jxtRLznfTjy6zxoD4AQQtxpc-UZHMd8JO0RBHIH-20nvLquLw4dF2dMGfHoYSD07zovegxJsGqS_sqls5GxYAvjO7FjXqRFBNuClWHeJAfYyiXDw6Q==)
+[2] [reddit.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFdewR69S8yhd6cnmnJrJTx7Ey5N1-Cy6Tk0MseX1QT2zmYV5FvAz8HWp6xgd5NYaWMr7UbL21C3KRSJUf7wQ90dXCXhDNs2R6WpNm3T25V4rnGRdcWOVsb17PuiReMP5RmgdfTscTnqw7akiNrtyOD0aZCD_Q55O7LEh49CGI7CAFVYS5UVlaUItWzpJjvWifWORdW_zE=)
+[3] [quora.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHGDF7WvZ2caUs1HZlVKLU09W5BbJerdIwnet9z4vthOCXEzhUSIv0BP12E9GV7DMWZ4aG3rIEf-V4WPg2ItFDQ0LEVwVSBQDTG6rZ1hZEQECrZbG6fxdStOA4tSnNSlXnA3cDBcuXdH7hrioan9jn97Qp1CvlHVfpGb6l09SRX_57Z6U8d3nitmQaRrEsQc9simhn8knhkTt5GYd0MkeH8M4YEbWxJ5RXN90X_)
+[4] [stackoverflow.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEhptb6C0p8qwtfn8jI988Yi1dArQk5EJCBHpOdg-7tXNpTd-2sJ2pd8a4Z2bF7fRKfm3ZQbjjURwL8A-hAlvQuHmFGaIbiy2ZzlTcKWIGws4qDI-u5QfNx92SXs5qqtZjbFaS9FDtBT71CNsB7koSr-gkb3oTGK4vR9w5BI4pPFHn8QinQa340CDQ0dPQktYOMV3XrxCvpMVVimCisngo6HnUg0Q==)
+[5] [medium.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGj_5fLemoP7R3UQZs9cDkIWD4eIlS9xUm8Edjhkxm6taBh7lqjOKiV_csCiXVq-NPxE72YmXPzsVZYTScfn5oGg3bOcggisOYwpmjHTKVcRJfkcPihZEJEhmFj_XDfEuto3ktwBHpa06pUkvzyQHvAisICGasEQIPtShu904Nkd1pcnJktv31hecRRqmgEpOJoRWrYS-Ds4gq_ychdAKBvHMfEoOrX7ew=)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.

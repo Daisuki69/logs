@@ -1,0 +1,10 @@
+Command exited with code 0.
+
+Command output:
+Unwanted comment found in index.html line 53 :     * {
+Zero comment audit completed.
+teacher.html script 0 syntax OK
+index.html script 0 syntax OK
+teacher.html has correct button text: Download Quiz File
+index.html has anti-selection and touch callout CSS
+index.html has contextmenu, selectstart, copy, and keydown blockers

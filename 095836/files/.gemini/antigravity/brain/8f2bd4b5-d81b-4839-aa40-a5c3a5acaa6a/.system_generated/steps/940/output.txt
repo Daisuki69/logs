@@ -1,0 +1,63 @@
+Created At: 2026-11-11T05:04:23+08:00
+Completed At: 2026-11-11T05:04:27+08:00
+The search for "javascript-obfuscator v4 JavaScriptObfuscator.obfuscate programmatic node api stringArrayCallsTransform" returned the following summary:
+In `javascript-obfuscator` (v4 and higher)[1], the programmatic Node.js API allows you to fine-tune how string arrays and their function calls are transformed. 
+
+The options **`stringArrayCallsTransform`** and **`stringArrayCallsTransformThreshold`** are crucial for masking the calls made to the string array, making it significantly harder for automated tools or analysts to reverse-engineer strings[2][3].
+
+### Node.js API Usage Example
+
+Below is an example of how to implement `javascript-obfuscator` programmatically using these options:
+
+```javascript
+const JavaScriptObfuscator = require('javascript-obfuscator');
+
+const code = `
+    const greeting = "Hello World";
+    const message = "Obfuscation is working successfully!";
+    console.log(greeting, message);
+`;
+
+const obfuscationResult = JavaScriptObfuscator.obfuscate(code, {
+    // 1. Must be enabled for the string array features to take effect
+    stringArray: true,
+    
+    // 2. Extracts a specific percentage of strings into the array (0 to 1)
+    stringArrayThreshold: 1, 
+
+    // 3. Enables transforming/removing direct calls to the string array function 
+    // and replacing them with specialized wrapper functions or direct inline decoders.
+    stringArrayCallsTransform: true,
+
+    // 4. Determines the proportion (0 to 1) of string array calls that will undergo this transformation
+    stringArrayCallsTransformThreshold: 0.75,
+
+    // Additional recommended settings to enhance string protection
+    stringArrayEncoding: ['base64'], // Options: ['none'], ['base64'], or ['rc4']
+    stringArrayRotate: true,
+    stringArrayShuffle: true,
+    compact: true
+});
+
+console.log(obfuscationResult.getObfuscatedCode());
+```
+
+---
+
+### Detailed Breakdown of Related Options
+
+* **`stringArrayCallsTransform`** (`boolean`, default: `false`): 
+  Enables or disables the transformation of calls to the string array. By default, when strings are moved to an array, you see repetitive function calls like `_0x12ab('0x0')`. Enabling this option transforms those calls or routes them through hidden wrapper functions to conceal the lookup patterns.
+  
+* **`stringArrayCallsTransformThreshold`** (`number`, default: `0.5`, range: `0` to `1`): 
+  Controls what percentage of string array calls will be transformed[2]. A value of `1` means *all* string array calls are transformed, whereas `0.5` means roughly half of them are randomized/masked, balancing performance and security.
+
+* **`stringArrayWrappersType`** (`string`, default: `'variable'`): 
+  When `stringArrayCallsTransform` is active, you can configure how the wrapper functions are structured (e.g., `'variable'` or `'function'`)[1], making the helper logic blend into your code structure.
+
+Sources:
+[1] [yarnpkg.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQEaobMtxbiMI6Xucm1a9nLXfrS4FNYAHGfAIS78257KAQPqdnNlm4WNgspYtxe5VYfOkn7B01NUaDfwCLSRNtEStVFEhlmA4RoZRBRtFEiA6EYM_U84bc6s5xn1zMxgeo1vAjxgd_AvsWRsxaCOgOKgVw==)
+[2] [npmjs.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGpnKfR2CdGn7Ej_Huukb1No6TazIgAO_Z7npHzDieZKyKVbryMGfXIwSuALpkasCf-YA-1j9y0mCZ7y5bNsImG5Csenqp4EpIJ2RVgBvPM3WwIMSfLaP2psfTLYNt508VaWfQ3ytkejQ==)
+[3] [github.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGINu3LF4zOWwU_MCgUFtPm_pdtWPvNOd-lUsYZ_NAr5WMFoPzLswCMXDIFyIJxgj9KW8QaVj9LZORo2DQmse3bBBHds27coTGR7tVOTp179yAMecOV6D7OO5wFX4wyUMJWwSwc1n9Ebxg-PNi1vqDloCctUbU1wbFzNzv6yVgq)
+
+Note: Source URLs are HTTP redirects; check where they resolve if you need the direct link.
