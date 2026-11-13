@@ -1,6 +1,0 @@
-Command exited with code 0.
-
-Command output:
-Hardened teacher save status: Saved Successfully to Student Quiz File! Quiz is live.
-Hardened index loaded probe title: Probe Quiz go.disabled: false
-Probe quiz doc cleanup HTTP: 200

@@ -1,4 +1,0 @@
-Command exited with code 1.
-
-Command output:
-C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe

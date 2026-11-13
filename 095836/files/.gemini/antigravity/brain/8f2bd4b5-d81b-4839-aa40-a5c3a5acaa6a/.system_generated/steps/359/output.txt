@@ -1,7 +1,0 @@
-Command exited with code 0.
-
-Command output:
-1. Testing write to /quizzes/active...
-Write status: 200
-2. Testing read /quizzes/active...
-Read status: 200

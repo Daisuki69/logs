@@ -1,7 +1,0 @@
-Command exited with code 0.
-
-Command output:
-164 <div id="confirm-modal" class="warn hide">
-247   $('confirm-modal').classList.remove('hide');
-250   $('confirm-modal').classList.add('hide');
-253   $('confirm-modal').classList.add('hide');

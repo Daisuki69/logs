@@ -1,8 +1,0 @@
-Command exited with code 0.
-
-Command output:
-
-teacher.html:105:    <a href="index.html" target="_blank" style="text-decoration:none"><button class="sec" 
-type="button" style="padding:6px 14px;font-size:0.9rem">Open Student Quiz</button></a>
-
-

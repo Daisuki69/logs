@@ -1,9 +1,0 @@
-Audit OK: 0 forbidden traces and 0 comments in compiled index.html & teacher.html
-1. Locked student stays locked (same epoch=100): lock.hidden= false start.hidden= true
-2. Switch to Reset tab OK -> view-reset visible, view-editor hidden
-3. Reset modal Yes -> status: Student response lock reset! Locked devices will unlock on reload. | local lock removed: true
-4. Remote lockEpoch bumped cleanly: true | title preserved: Epoch Probe Quiz
-5. Reload locked device after reset -> ls unlocked: true | start visible: true | go.disabled: false
-6. Re-locked at new epoch stays locked: true
-7. Cleanup temporary probe doc HTTP: 200
-ALL RESET TAB & EPOCH UNLOCK TESTS PASSED!

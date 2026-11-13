@@ -1,5 +1,0 @@
-Command exited with code 0.
-
-Command output:
-Template sync status: 200
-Template sync success! Document: projects/sir-jasper-quiz/databases/(default)/documents/quizzes/template

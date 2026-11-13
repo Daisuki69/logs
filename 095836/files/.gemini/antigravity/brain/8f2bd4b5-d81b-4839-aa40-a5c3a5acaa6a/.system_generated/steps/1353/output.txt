@@ -1,3 +1,0 @@
-Created At: 2026-11-11T05:59:52+08:00
-Completed At: 2026-11-11T06:00:58+08:00
-A1: (Recommended) Top of loaded Quiz Editor / Submissions in teacher.html to return to Dashboard (and sync browser Back)

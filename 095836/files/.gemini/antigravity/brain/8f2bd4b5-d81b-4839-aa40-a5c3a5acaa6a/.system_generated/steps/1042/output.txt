@@ -1,9 +1,0 @@
-Created At: 2026-11-11T05:20:14+08:00
-Completed At: 2026-11-11T05:20:22+08:00
-Command exited with code 0.
-
-Command output:
-index.html pre-obf OK
-teacher.html pre-obf OK
-index.html hardened cleanly: inner= 229679 boot= 13286 totalBytes= 326486
-teacher.html hardened cleanly: inner= 279259 boot= 13232 totalBytes= 395634

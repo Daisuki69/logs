@@ -1,4 +1,0 @@
-Command exited with code 0.
-
-Command output:
-Active description: 20 items • 20 seconds per question • Do not switch tabs or windows.

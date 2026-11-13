@@ -1,7 +1,0 @@
-{
-  "name": "obf-tool",
-  "private": true,
-  "dependencies": {
-    "javascript-obfuscator": "^4.1.1"
-  }
-}

@@ -1,1 +1,0 @@
-Made 1 replacement in C:\Users\CxAdmin\Desktop\Exploit\teacher.html starting at line 30 (+40/-30 lines).

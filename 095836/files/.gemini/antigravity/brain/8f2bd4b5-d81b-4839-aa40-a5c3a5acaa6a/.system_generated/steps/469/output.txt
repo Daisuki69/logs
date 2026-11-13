@@ -1,1 +1,0 @@
-Made 1 replacement in C:\Users\CxAdmin\Desktop\Exploit\index.html starting at line 57 (+11/-3 lines).

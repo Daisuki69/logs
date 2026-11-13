@@ -1,7 +1,0 @@
-Command exited with code 0.
-
-Command output:
-Server started on 8090
-Test error: Cannot find module 'puppeteer-core'
-Require stack:
-- C:\Users\CxAdmin\Desktop\Exploit\scratch\test_browser.cjs

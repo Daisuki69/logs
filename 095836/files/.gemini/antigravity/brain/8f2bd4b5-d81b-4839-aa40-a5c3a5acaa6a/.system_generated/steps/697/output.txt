@@ -1,4 +1,0 @@
-Command exited with code 0.
-
-Command output:
-Submissions read check status: SUCCESS: 9 documents found

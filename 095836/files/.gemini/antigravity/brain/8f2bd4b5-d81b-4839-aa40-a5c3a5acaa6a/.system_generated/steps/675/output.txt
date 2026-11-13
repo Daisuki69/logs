@@ -1,4 +1,0 @@
-Command exited with code 0.
-
-Command output:
-teacher.html script syntax OK
